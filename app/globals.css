@@ -183,3 +183,16 @@ input[type='range']::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .dialog p { margin: 0 0 8px; color: #cfcfcf; }
 .dialog a { color: var(--accent); }
 .dialog .warn { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #3a2a10; color: var(--amber); }
+
+/* ---------- aprender / explorações ---------- */
+.learn-card { position: absolute; top: 50px; left: 14px; width: min(360px, calc(100% - 28px)); z-index: 5; padding: 14px 16px; border-radius: 16px; background: #181818f2; border: 1px solid var(--line-strong); box-shadow: 0 16px 50px #0009; backdrop-filter: blur(10px); }
+.learn-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.learn-card h3 { margin: 4px 0 6px; font-size: 19px; font-weight: 600; }
+.learn-card p { margin: 0 0 8px; color: #cfcfcf; line-height: 1.5; }
+.learn-card .ask, .learn-card .hint-line { color: var(--muted); font-size: 13px; }
+.learn-card footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.learn-card .list-card { margin-top: 4px; }
+.outcome { font-weight: 600; }
+.outcome.correct { color: #7fd69a; }
+.outcome.incorrect { color: var(--danger); }
+.outcome.revealed { color: var(--amber); }

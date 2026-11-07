@@ -14,6 +14,9 @@ import {BottomBar} from './layout/BottomBar';
 import {RightPanel} from './layout/RightPanel';
 import {StructurePanel} from './layout/StructurePanel';
 import {CreditsDialog} from './layout/CreditsDialog';
+import {tourReducer, type Tour, type TourState} from './learn/tour';
+import {checkAnswer, quizReducer, shuffled, type QuizItem, type QuizState} from './learn/quiz';
+import {QuizCard, TourCard, TourPicker} from './learn/LearnOverlay';
 
 const initial: SceneState = {
   explode: 0, visible: DEFAULT_VISIBLE, selected: [], isolate: false, view: 'perspective', rotate: false, reset: 0,
@@ -35,6 +38,13 @@ export default function Home() {
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
   const [credits, setCredits] = useState(false);
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
+  const [tourPicker, setTourPicker] = useState(false);
+  const [tour, setTour] = useState<TourState | null>(null);
+  const [quiz, setQuiz] = useState<QuizState | null>(null);
+  const quizRef = useRef<QuizState | null>(null);
+  quizRef.current = quiz;
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -43,6 +53,8 @@ export default function Home() {
       .then(r => { if (!r.ok) throw new Error('Não foi possível carregar o catálogo de anatomia.'); return r.json(); })
       .then(async (raw: Atlas) => { const data = correctAtlas(raw); setAtlas(data); setNames(await loadNames(data)); })
       .catch(e => { if (e.name !== 'AbortError') setError(e.message); });
+    fetch('/data/tours.json').then(r => r.json()).then(setTours).catch(() => {});
+    fetch('/data/quiz.json').then(r => r.json()).then(setQuizItems).catch(() => {});
     return () => abort.abort();
   }, []);
 
@@ -69,10 +81,11 @@ export default function Home() {
     return names?.display(p.conceptId, p.name).pt ?? p.name;
   }, [parts, names]);
 
-  const choose = useCallback((c: Concept, opts: {isolate?: boolean} = {}) => {
+  const choose = useCallback((c: Concept, opts: {isolate?: boolean; focus?: boolean} = {}) => {
     setChosen(c);
     setActiveOrgan(null);
-    setState(s => ({...s, selected: c.elements, isolate: !!opts.isolate, focus: false, rotate: false, highlight: []}));
+    // Focus re-frames the camera on the selection (reset+1 refits to what stays opaque).
+    setState(s => ({...s, selected: c.elements, isolate: !!opts.isolate, focus: !!opts.focus, rotate: false, highlight: [], reset: opts.focus ? s.reset + 1 : s.reset}));
     setLeftOpen(false);
     setRightOpen(true);
   }, []);
@@ -80,8 +93,16 @@ export default function Home() {
   const choosePart = useCallback((id: string) => {
     const p = parts.get(id);
     if (!p) return;
+    const q = quizRef.current;
+    if (q && !q.finished && atlas) {
+      const item = q.items[q.index];
+      const result = checkAnswer(item, id, atlas);
+      setQuiz(prev => quizReducer(prev, {type: 'answer', result}));
+      if (result === 'correct') { const c = atlas.concepts.find(x => x.name === item.concept); if (c) choose(c, {focus: true}); }
+      return;
+    }
     choose(conceptById.get(p.conceptId) ?? {id: p.conceptId, name: p.name, elements: [id]});
-  }, [parts, conceptById, choose]);
+  }, [parts, conceptById, choose, atlas]);
 
   // A single-concept organ keeps its real atlas concept (Portuguese name, FMA id, explanation);
   // a pair like the lungs becomes a group named in Portuguese.
@@ -99,6 +120,40 @@ export default function Home() {
   };
 
   useEffect(() => { if (atlas) return registerAtlasTools(atlas, c => flushSync(() => choose(c))); }, [atlas, choose]);
+
+  const conceptByName = (n: string) => atlas?.concepts.find(c => c.name === n);
+
+  // Each tour step selects its structure and frames it.
+  useEffect(() => {
+    if (!tour) return;
+    const c = conceptByName(tour.tour.steps[tour.step].concept);
+    if (c) choose(c, {focus: true});
+  }, [tour]);
+
+  const clearSelection = () => { setChosen(null); setActiveOrgan(null); setState(s => ({...s, selected: [], isolate: false, focus: false, reset: s.reset + 1})); };
+  const startQuiz = () => { setTour(null); setTourPicker(false); clearSelection(); setQuiz(quizReducer(null, {type: 'start', items: shuffled(quizItems)})); };
+  const exitQuiz = () => { setQuiz(null); clearSelection(); };
+  const exitTour = () => { setTour(null); clearSelection(); };
+
+  const learnOverlay = quiz ? (
+    <QuizCard
+      state={quiz}
+      askedName={(() => { const c = conceptByName(quiz.items[quiz.index]?.concept ?? ''); return c ? nameOfConcept(c) : ''; })()}
+      onReveal={() => { const c = conceptByName(quiz.items[quiz.index].concept); if (c) choose(c, {focus: true}); setQuiz(q => quizReducer(q, {type: 'reveal'})); }}
+      onNext={() => { setQuiz(q => quizReducer(q, {type: 'next'})); clearSelection(); }}
+      onExit={exitQuiz}
+    />
+  ) : tour ? (
+    <TourCard
+      state={tour}
+      stepName={(() => { const c = conceptByName(tour.tour.steps[tour.step].concept); return c ? nameOfConcept(c) : ''; })()}
+      onPrev={() => setTour(t => t && tourReducer(t, 'prev'))}
+      onNext={() => setTour(t => t && tourReducer(t, 'next'))}
+      onExit={exitTour}
+    />
+  ) : tourPicker ? (
+    <TourPicker tours={tours} onPick={t => { setQuiz(null); setTourPicker(false); setTour({tour: t, step: 0}); }} onClose={() => setTourPicker(false)} />
+  ) : null;
 
   const labelTargets = useMemo<LabelTarget[]>(() => {
     // Organ labels only when the organs can actually be seen (muscles hidden or see-through).
@@ -152,7 +207,7 @@ export default function Home() {
       onToggleSystem={id => setState(s => ({...s, visible: s.visible.includes(id) ? s.visible.filter(x => x !== id) : [...s.visible, id]}))}
       onLayer={(layer, value) => setState(s => ({...s, layers: {...s.layers, [layer]: value}}))}
       onToggleLabels={() => setState(s => ({...s, labels: !s.labels}))}
-      onLearn={() => {}}
+      onLearn={startQuiz}
       onCredits={() => setCredits(true)}
     />
   );
@@ -183,6 +238,7 @@ export default function Home() {
         progress={progress}
         error={error}
       />
+      {learnOverlay}
       <BottomBar
         view={state.view}
         explode={state.explode}
@@ -205,7 +261,7 @@ export default function Home() {
       onClose={() => { setChosen(null); setActiveOrgan(null); setState(s => ({...s, selected: [], isolate: false, focus: false})); }}
     />
   ) : (
-    <RightPanel onOrgan={chooseOrgan} onTours={() => {}} />
+    <RightPanel onOrgan={chooseOrgan} onTours={() => { setQuiz(null); setTourPicker(true); }} />
   );
 
   return (
