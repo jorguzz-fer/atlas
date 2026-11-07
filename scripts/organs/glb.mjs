@@ -61,3 +61,87 @@ export function describeGlb(buf) {
   const images = (json.images ?? []).filter(i => i.bufferView !== undefined).map(i => ({mimeType: i.mimeType, bytes: views[i.bufferView].length}));
   return {triangles, images};
 }
+
+const COMPONENT_BYTES = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4};
+const TYPE_COMPONENTS = {SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT2: 4, MAT3: 9, MAT4: 16};
+
+/** The accessor's elements as one tightly packed Buffer (stride and offsets resolved). */
+function packed(json, views, accessor) {
+  const elem = COMPONENT_BYTES[accessor.componentType] * TYPE_COMPONENTS[accessor.type];
+  const view = views[accessor.bufferView];
+  const stride = json.bufferViews[accessor.bufferView].byteStride || elem;
+  const out = Buffer.alloc(accessor.count * elem);
+  for (let i = 0; i < accessor.count; i++) view.copy(out, i * elem, (accessor.byteOffset ?? 0) + i * stride, (accessor.byteOffset ?? 0) + i * stride + elem);
+  return {data: out, elem};
+}
+
+const typed = (buf, Type) => new Type(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length));
+
+/**
+ * Simplifies every indexed triangle mesh to about `ratio` of its triangles (meshoptimizer),
+ * keeping the shape within `error` (relative to the mesh size), then drops the vertices
+ * no longer used. Meshes under `minTriangles` are left as they are.
+ */
+export async function simplifyGlb(buf, {ratio, error = 0.01, minTriangles = 2000}) {
+  const {MeshoptSimplifier} = await import('meshoptimizer');
+  await MeshoptSimplifier.ready;
+  const {json, views} = readGlb(buf);
+  const originalViews = views.length;
+  const uses = new Map();
+  for (const mesh of json.meshes ?? []) for (const p of mesh.primitives) {
+    for (const a of [...Object.values(p.attributes), p.indices]) if (a !== undefined) uses.set(a, (uses.get(a) ?? 0) + 1);
+  }
+  const addView = data => { views.push(data); json.bufferViews.push({buffer: 0, byteLength: data.length}); return views.length - 1; };
+
+  for (const mesh of json.meshes ?? []) for (const p of mesh.primitives) {
+    if (p.indices === undefined || (p.mode ?? 4) !== 4 || p.targets) continue;
+    const accessors = [...Object.values(p.attributes), p.indices];
+    if (accessors.some(a => uses.get(a) > 1)) continue; // shared data: simplifying one mesh would break another
+    const indexAcc = json.accessors[p.indices], posAcc = json.accessors[p.attributes.POSITION];
+    if (indexAcc.count / 3 < minTriangles || posAcc.componentType !== 5126) continue;
+
+    const rawIndices = packed(json, views, indexAcc).data;
+    const indices = indexAcc.componentType === 5125 ? typed(rawIndices, Uint32Array)
+      : Uint32Array.from(indexAcc.componentType === 5123 ? typed(rawIndices, Uint16Array) : rawIndices);
+    const positions = typed(packed(json, views, posAcc).data, Float32Array);
+    const target = Math.max(3, Math.floor((indices.length * ratio) / 3) * 3);
+    const [simple] = MeshoptSimplifier.simplify(indices, positions, 3, target, error);
+    if (simple.length >= indices.length) continue;
+    const [remap, unique] = MeshoptSimplifier.compactMesh(simple);
+
+    for (const a of Object.values(p.attributes)) {
+      const acc = json.accessors[a];
+      const {data, elem} = packed(json, views, acc);
+      const out = Buffer.alloc(unique * elem);
+      for (let v = 0; v < acc.count; v++) if (remap[v] !== 0xffffffff) data.copy(out, remap[v] * elem, v * elem, v * elem + elem);
+      acc.bufferView = addView(out);
+      delete acc.byteOffset;
+      acc.count = unique;
+      if (a === p.attributes.POSITION) {
+        const f = typed(out, Float32Array), min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < f.length; i++) { min[i % 3] = Math.min(min[i % 3], f[i]); max[i % 3] = Math.max(max[i % 3], f[i]); }
+        acc.min = min; acc.max = max;
+      }
+    }
+    indexAcc.bufferView = addView(Buffer.from(simple.buffer, simple.byteOffset, simple.byteLength));
+    indexAcc.componentType = 5125;
+    indexAcc.count = simple.length;
+    delete indexAcc.byteOffset; delete indexAcc.min; delete indexAcc.max;
+  }
+
+  // Untouched accessors may still point into big views shared with the simplified meshes:
+  // give each its own tight copy so those views can go.
+  for (const acc of json.accessors ?? []) {
+    if (acc.bufferView === undefined || acc.bufferView >= originalViews || acc.sparse) continue;
+    acc.bufferView = addView(packed(json, views, acc).data);
+    delete acc.byteOffset;
+  }
+
+  // Drop the buffer views nothing points at any more.
+  const used = new Set([...(json.accessors ?? []).map(a => a.bufferView), ...(json.images ?? []).map(i => i.bufferView)].filter(v => v !== undefined));
+  const keep = [...used].sort((a, b) => a - b), index = new Map(keep.map((old, i) => [old, i]));
+  json.bufferViews = keep.map(i => json.bufferViews[i]);
+  for (const a of json.accessors ?? []) if (a.bufferView !== undefined) a.bufferView = index.get(a.bufferView);
+  for (const im of json.images ?? []) if (im.bufferView !== undefined) im.bufferView = index.get(im.bufferView);
+  return writeGlb(json, keep.map(i => views[i]));
+}

@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 // Prepares a Sketchfab GLB for the Atlas: PNG textures -> JPEG (max 2048 px), written to public/models/organs/<key>.glb.
-// Usage: node scripts/organs/prepare.mjs <arquivo.glb> <chave>   (macOS: uses the built-in `sips`)
+// Usage: node scripts/organs/prepare.mjs <arquivo.glb> <chave> [--simplificar=0.15]   (macOS: uses the built-in `sips`)
+// --simplificar keeps about that fraction of the triangles of heavy meshes (meshoptimizer).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {describeGlb, readGlb, replaceImages} from './glb.mjs';
+import {describeGlb, readGlb, replaceImages, simplifyGlb} from './glb.mjs';
 
-const [input, key] = process.argv.slice(2);
-if (!input || !/^[a-z-]+$/.test(key ?? '')) {
-  console.error('Uso: node scripts/organs/prepare.mjs <arquivo.glb> <chave, ex.: lungs>');
+const args = process.argv.slice(2);
+const [input, key] = args.filter(a => !a.startsWith('--'));
+const ratio = Number(args.find(a => a.startsWith('--simplificar='))?.split('=')[1] ?? 1);
+if (!input || !/^[a-z-]+$/.test(key ?? '') || !(ratio > 0 && ratio <= 1)) {
+  console.error('Uso: node scripts/organs/prepare.mjs <arquivo.glb> <chave, ex.: lungs> [--simplificar=0.15]');
   process.exit(1);
 }
 const source = fs.readFileSync(input);
@@ -17,7 +20,8 @@ const {json} = readGlb(source);
 // Normal maps lose detail faster under JPEG, so they keep a higher quality.
 const normalImages = new Set((json.materials ?? []).map(m => m.normalTexture && json.textures[m.normalTexture.index]?.source).filter(i => i !== undefined));
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-organ-'));
-const out = replaceImages(source, (bytes, mimeType, index) => {
+const slim = ratio < 1 ? await simplifyGlb(source, {ratio}) : source;
+const out = replaceImages(slim, (bytes, mimeType, index) => {
   if (mimeType !== 'image/png') return {bytes, mimeType};
   const png = path.join(tmp, `${index}.png`), jpg = path.join(tmp, `${index}.jpg`);
   fs.writeFileSync(png, bytes);

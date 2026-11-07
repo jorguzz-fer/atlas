@@ -42,3 +42,7 @@ Todos licenciados sob CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); 
 - Pulmões: "Realistic Human Lungs" por neshallads — https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531 (`public/models/organs/lungs.glb`)
 - Rins: "Human Kidney" por neshallads — https://sketchfab.com/3d-models/human-kidney-e1476ceb1e3b4412af5418eee9c5ed08 (`public/models/organs/kidneys.glb`)
 - Encéfalo: "Human brain, Cerebrum & Brainstem" por FrankJohansson (pranktoy) — https://sketchfab.com/3d-models/human-brain-cerebrum-brainstem-0aa0e33c5c854d1bab7bac9e1c7acaec (`public/models/organs/brain.glb`)
+- Fígado e vesícula: "Human liver and gallbladder" por ElliotSS — https://sketchfab.com/3d-models/human-liver-and-gallbladder-6c4e9bd0d49f4828b804259330c0c6c4 (`public/models/organs/liver.glb`)
+- Pâncreas e duodeno: "Human Pancreas Cross section" por arloopa — https://sketchfab.com/3d-models/human-pancreas-cross-section-f7b30e11b5df445fbdfe0e262e777c85 (`public/models/organs/pancreas.glb`)
+- Intestinos: "Small and large intestine" por antonia.sundberg — https://sketchfab.com/3d-models/small-and-large-intestine-8a1ca8e3ca224cdeb9264674416bde38 (`public/models/organs/intestines.glb`; malha simplificada para 50% dos triângulos)
+- Olho e músculos: "Muscles of the Orbit (Eye)" por thunderpig — https://sketchfab.com/3d-models/muscles-of-the-orbit-eye-2183957b3c3d493da716eb471ab6b517 (`public/models/organs/eye.glb`; malha simplificada para 12% dos triângulos)
