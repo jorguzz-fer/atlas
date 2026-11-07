@@ -1,6 +1,10 @@
 node_modules/
 dist/
+dist-server/
 .env*
 .DS_Store
 /work/
 /outputs/
+.superpowers/
+public/models/*.bin
+*.tsbuildinfo
