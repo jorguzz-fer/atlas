@@ -17,6 +17,7 @@ import {CreditsDialog} from './layout/CreditsDialog';
 import {tourReducer, type Tour, type TourState} from './learn/tour';
 import {checkAnswer, quizReducer, shuffled, type QuizItem, type QuizState} from './learn/quiz';
 import {QuizCard, TourCard, TourPicker} from './learn/LearnOverlay';
+import {TutorDrawer} from './tutor/TutorDrawer';
 
 const initial: SceneState = {
   explode: 0, visible: DEFAULT_VISIBLE, selected: [], isolate: false, view: 'perspective', rotate: false, reset: 0,
@@ -38,6 +39,7 @@ export default function Home() {
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
   const [credits, setCredits] = useState(false);
+  const [tutorOpen, setTutorOpen] = useState(false);
   const [tours, setTours] = useState<Tour[]>([]);
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [tourPicker, setTourPicker] = useState(false);
@@ -182,7 +184,7 @@ export default function Home() {
 
   const header = (
     <Header
-      onAskTutor={() => setRightOpen(true)}
+      onAskTutor={() => { setTutorOpen(o => !o); setLeftOpen(false); }}
       onReset={resetAll}
       onCredits={() => setCredits(true)}
       onToggleLeft={() => { setLeftOpen(o => !o); setRightOpen(false); }}
@@ -257,7 +259,7 @@ export default function Home() {
       isolate={state.isolate}
       onFocus={() => setState(s => ({...s, focus: !s.focus, isolate: false}))}
       onIsolate={() => setState(s => ({...s, isolate: !s.isolate, focus: false, explode: 0}))}
-      onAskTutor={() => {}}
+      onAskTutor={() => { setTutorOpen(true); setLeftOpen(false); }}
       onClose={() => { setChosen(null); setActiveOrgan(null); setState(s => ({...s, selected: [], isolate: false, focus: false})); }}
     />
   ) : (
@@ -266,7 +268,17 @@ export default function Home() {
 
   return (
     <>
-      <AppShell header={header} left={left} center={center} right={right} leftOpen={leftOpen} rightOpen={rightOpen} />
+      <AppShell
+        header={header} left={left} center={center} right={right} leftOpen={leftOpen} rightOpen={rightOpen}
+        drawer={
+          <TutorDrawer
+            open={tutorOpen}
+            onClose={() => { setTutorOpen(false); setState(s => ({...s, highlight: []})); }}
+            selected={chosen ? {id: chosen.id.startsWith('group-') ? chosen.elements[0] : chosen.id, name: nameOfConcept(chosen)} : null}
+            onHighlight={ids => setState(s => ({...s, highlight: ids, isolate: false, explode: 0}))}
+          />
+        }
+      />
       <CreditsDialog open={credits} onClose={() => setCredits(false)} />
     </>
   );

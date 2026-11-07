@@ -1,4 +1,4 @@
-import {partOpacity} from './scene-state';
+import {partOpacity, HIGHLIGHT_DIM} from './scene-state';
 import type {Part, SceneState} from './anatomy';
 
 const base: SceneState = {
@@ -32,6 +32,13 @@ test('isolate shows only the selection', () => {
   const s = {...base, isolate: true, selected: ['G']};
   expect(partOpacity(bone, s)).toBe(0);
   expect(partOpacity(gut, s)).toBe(1);
+});
+
+test('a tutor highlight fades everything else so the highlighted parts can be seen', () => {
+  const s = {...base, highlight: ['G']};
+  expect(partOpacity(gut, s)).toBe(1);
+  expect(partOpacity(bone, s)).toBeCloseTo(HIGHLIGHT_DIM);
+  expect(partOpacity(muscle, s)).toBe(0);
 });
 
 test('selected and tutor-highlighted parts show even in hidden systems or faded layers', () => {
