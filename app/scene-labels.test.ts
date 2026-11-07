@@ -1,4 +1,4 @@
-import {placeLabels} from './scene-labels';
+import {placeLabels, labelsMoved} from './scene-labels';
 
 const viewport = {width: 800, height: 600};
 
@@ -23,6 +23,14 @@ test('anchors outside the viewport are dropped', () => {
 
 test('structures smaller than 24 px on screen get no label', () => {
   expect(placeLabels([{id: 'a', x: 400, y: 300, size: 10}], viewport)).toEqual([]);
+});
+
+test('labelsMoved ignores sub-4px jitter but reports real moves and set changes', () => {
+  const a = [{id: 'a', x: 100, y: 100, anchorX: 30, anchorY: 100}];
+  expect(labelsMoved(a, [{...a[0], x: 103, y: 98}])).toBe(false);
+  expect(labelsMoved(a, [{...a[0], x: 105}])).toBe(true);
+  expect(labelsMoved(a, [])).toBe(true);
+  expect(labelsMoved(a, [{...a[0], id: 'b'}])).toBe(true);
 });
 
 test('labels near the right edge flip to the left side of the anchor', () => {

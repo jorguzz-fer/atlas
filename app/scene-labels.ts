@@ -6,6 +6,15 @@ const OFFSET = 70;
 const MIN_SIZE = 24;
 const EDGE_ROOM = 160;
 
+/** True when the label set changed or any label moved at least `tolerance` px — below that it is camera jitter. */
+export function labelsMoved(prev: ScreenLabel[], next: ScreenLabel[], tolerance = 4): boolean {
+  if (prev.length !== next.length) return true;
+  return next.some((l, i) => {
+    const p = prev[i];
+    return p.id !== l.id || Math.abs(p.x - l.x) >= tolerance || Math.abs(p.y - l.y) >= tolerance;
+  });
+}
+
 /** Places one label per visible structure, beside its anchor, without vertical overlap. */
 export function placeLabels(candidates: LabelCandidate[], viewport: {width: number; height: number}): ScreenLabel[] {
   const inside = candidates

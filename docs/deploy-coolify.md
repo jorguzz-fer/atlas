@@ -18,6 +18,7 @@ O Atlas roda num único container: o servidor Node serve o site, os modelos 3D e
 | `TUTOR_MODEL` | `claude-opus-5-5` (padrão). `claude-sonnet-5-5` dá ~2,5× mais perguntas pelo mesmo valor | não |
 | `TUTOR_DAILY_BUDGET_USD` | `1.00` (≈ US$ 30/mês) | não |
 | `TUTOR_RATE_LIMIT_PER_HOUR` | `30` perguntas por IP por hora | não |
+| `TUTOR_MAX_CONCURRENT` | `3` respostas ao mesmo tempo (as demais recebem "ocupado") | não |
 | `PORT` | `3000` | não |
 
 Sem `ANTHROPIC_API_KEY`, o Atlas funciona normalmente e só o tutor fica indisponível.
@@ -28,7 +29,7 @@ O container já declara `HEALTHCHECK` em `/healthz`. No Coolify, se pedir: camin
 
 ## 4. Segunda trava de gasto (importante)
 
-O tutor para sozinho ao atingir o teto diário, mas o contador zera se o container reiniciar. Defina também um **limite de gasto mensal no Console da Anthropic** (Settings → Limits), por exemplo US$ 30.
+O tutor para sozinho ao atingir o teto diário, mas o contador zera se o container reiniciar, e respostas que já estavam em andamento terminam mesmo que passem do teto (no máximo `TUTOR_MAX_CONCURRENT` respostas, cerca de US$ 0,40 cada no pior caso). Defina também um **limite de gasto mensal no Console da Anthropic** (Settings → Limits), por exemplo US$ 30.
 
 ## 5. Atualizar
 

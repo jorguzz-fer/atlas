@@ -22,6 +22,7 @@ const tutor = createTutor({
   budget: new BudgetMeter({dailyUsd: Number(process.env.TUTOR_DAILY_BUDGET_USD ?? 1), now: () => new Date()}),
   limiter: new RateLimiter({perHour: Number(process.env.TUTOR_RATE_LIMIT_PER_HOUR ?? 30), now: () => Date.now()}),
   llm: apiKey ? createClaudeTurn({apiKey, model}) : null,
+  maxConcurrent: Number(process.env.TUTOR_MAX_CONCURRENT ?? 3),
   remoteOf: c => { try { return getConnInfo(c).remote.address ?? ''; } catch { return ''; } },
 });
 

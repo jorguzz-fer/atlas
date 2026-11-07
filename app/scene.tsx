@@ -8,7 +8,7 @@ import {decodeModelResponse} from './model-download';
 import {PointerTap} from './pointer-tap';
 import {SYSTEMS,type Atlas,type SceneState} from './anatomy';
 import {partOpacity} from './scene-state';
-import {placeLabels,type ScreenLabel} from './scene-labels';
+import {labelsMoved,placeLabels,type ScreenLabel} from './scene-labels';
 /** A labelled structure: the label sits at the centre of its visible parts. */
 export type LabelTarget = {id:string;parts:string[]};
 interface Props {atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;onProgress:(n:number)=>void;onError:(s:string)=>void;
@@ -110,17 +110,18 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError,na
   };
   renderer.domElement.addEventListener('pointerdown',down);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);
   const clock=new T.Clock();let lastExtent=-1,lastCount=-1,lastHighlight='',lastZoom=latest.current.zoom,lastLabelsKey='';
-  const partIndex=new Map(atlas.parts.map((p,i)=>[p.id,i]));let lastTargets:LabelTarget[]|null=null;
+  const partIndex=new Map(atlas.parts.map((p,i)=>[p.id,i]));let lastTargets:LabelTarget[]|null=null,lastLabels:ScreenLabel[]=[],lastLabelsAt=0;
   // Smart labels: centre of each target's visible parts, projected to the screen.
   const emitLabels=(s:SceneState)=>{
-   if(!s.labels||amount>.3||!ready){if(lastLabelsKey!==''){lastLabelsKey='';labelsCb.current([]);}return;}
+   if(!s.labels||amount>.3||!ready){if(lastLabelsKey!==''){lastLabelsKey='';lastLabels=[];labelsCb.current([]);}return;}
    const candidates=[];const box=new T.Box3(),p0=new T.Vector3(),p1=new T.Vector3();
    for(const t of targetsRef.current){box.makeEmpty();for(const id of t.parts){const i=partIndex.get(id);if(i===undefined||data[i*4+3]<.5)continue;box.union(bounds[i]);}if(box.isEmpty())continue;
     const c=box.getCenter(new T.Vector3()).project(camera);if(c.z<-1||c.z>1)continue;
     p0.copy(box.min).project(camera);p1.copy(box.max).project(camera);const size=Math.max(Math.abs(p1.x-p0.x)*el.clientWidth/2,Math.abs(p1.y-p0.y)*el.clientHeight/2);
     candidates.push({id:t.id,x:(c.x+1)*el.clientWidth/2,y:(1-c.y)*el.clientHeight/2,size});}
    const labels=placeLabels(candidates,{width:el.clientWidth,height:el.clientHeight});
-   const key=labels.map(l=>`${l.id}:${Math.round(l.x)}:${Math.round(l.y)}`).join('|');if(key!==lastLabelsKey){lastLabelsKey=key;labelsCb.current(labels);}
+   // Throttled: React re-renders the overlay at most ~10×/s, and only when a label really moved.
+   const now=performance.now();if((now-lastLabelsAt>=100||labels.length!==lastLabels.length)&&labelsMoved(lastLabels,labels)){lastLabels=labels;lastLabelsAt=now;lastLabelsKey='set';labelsCb.current(labels);}else if(labelsMoved(lastLabels,labels)){dirty=true;}
   };
   const animate=()=>{
    if(disposed)return;frame=requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05),s=latest.current;

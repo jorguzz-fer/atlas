@@ -1,6 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import {Hono, type Context} from 'hono';
 import {streamSSE} from 'hono/streaming';
+import {bodyLimit} from 'hono/body-limit';
 import type {BudgetMeter, Usage} from './budget';
 import type {Catalog} from './catalog';
 import type {RateLimiter} from './rate-limit';
@@ -8,12 +9,13 @@ import {clientIp} from './client-ip';
 import {SYSTEM_PROMPT, TOOLS, contextBlock} from './prompt';
 
 /** One model turn: streams text through onText and resolves with the complete message. */
-export type LlmTurn = (req: {system: string; messages: Anthropic.MessageParam[]; tools: Anthropic.Tool[]; onText: (delta: string) => void}) =>
+export type LlmTurn = (req: {system: string; messages: Anthropic.MessageParam[]; tools: Anthropic.Tool[]; onText: (delta: string) => void; signal?: AbortSignal}) =>
   Promise<{content: Anthropic.ContentBlock[]; stop_reason: string | null; usage: Usage; model: string}>;
 
 const MAX_QUESTION = 800;
 const MAX_HISTORY = 10;
 const MAX_TOOL_ROUNDS = 4;
+const MAX_BODY = 32 * 1024;
 
 const MSG = {
   invalid: 'Pergunta inválida.',
@@ -21,6 +23,9 @@ const MSG = {
   noKey: 'O tutor não está configurado neste servidor.',
   rate: 'Muitas perguntas seguidas. Espere um pouco e tente de novo.',
   budget: 'O tutor descansou por hoje, volte amanhã.',
+  busy: 'O tutor está ocupado agora. Tente de novo em instantes.',
+  notJson: 'Envie a pergunta como JSON.',
+  tooBig: 'Pedido grande demais.',
   failed: 'O tutor teve um problema para responder. Tente de novo.',
   refused: 'Não posso ajudar com essa pergunta.',
 };
@@ -40,9 +45,13 @@ function parse(raw: unknown): Body | string {
   return {question: b.question.trim(), history: clean, selected};
 }
 
-export function createTutor(deps: {catalog: Catalog; budget: BudgetMeter; limiter: RateLimiter; llm: LlmTurn | null; remoteOf?: (c: Context) => string}): Hono {
+export function createTutor(deps: {catalog: Catalog; budget: BudgetMeter; limiter: RateLimiter; llm: LlmTurn | null; remoteOf?: (c: Context) => string; maxConcurrent?: number}): Hono {
   const app = new Hono();
-  app.post('/', async c => {
+  const maxConcurrent = deps.maxConcurrent ?? 3;
+  let inFlight = 0;
+  app.post('/', bodyLimit({maxSize: MAX_BODY, onError: c => c.json({error: MSG.tooBig}, 413)}), async c => {
+    // Only application/json: an HTML form on another site cannot send it, so it cannot spend the budget.
+    if (!c.req.header('content-type')?.toLowerCase().includes('application/json')) return c.json({error: MSG.notJson}, 415);
     let raw: unknown;
     try { raw = await c.req.json(); } catch { return c.json({error: MSG.invalid}, 400); }
     const body = parse(raw);
@@ -51,6 +60,8 @@ export function createTutor(deps: {catalog: Catalog; budget: BudgetMeter; limite
     const ip = clientIp(c.req.raw.headers, deps.remoteOf?.(c) ?? '');
     if (!deps.limiter.take(ip)) return c.json({error: MSG.rate}, 429);
     if (!deps.budget.canSpend()) return c.json({error: MSG.budget}, 429);
+    // Caps how far concurrent answers can overshoot the daily budget (each is checked only when it starts).
+    if (inFlight >= maxConcurrent) return c.json({error: MSG.busy}, 429);
 
     const llm = deps.llm;
     const selected = body.selected ? deps.catalog.describe(body.selected.id) : null;
@@ -66,12 +77,18 @@ export function createTutor(deps: {catalog: Catalog; budget: BudgetMeter; limite
     if (messages.at(-1)?.role === 'user') messages.push({role: 'assistant', content: '(sem resposta)'});
     messages.push({role: 'user', content: question});
 
+    inFlight++;
+    const abort = new AbortController();
     return streamSSE(c, async sse => {
+      // Reader gone (tab closed): stop the model so no one pays for an unread answer.
+      sse.onAbort(() => abort.abort());
       const send = (data: unknown) => sse.writeSSE({data: JSON.stringify(data)});
       let wroteText = false;
       try {
         for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-          const turn = await llm({system: SYSTEM_PROMPT, messages, tools: TOOLS, onText: delta => { wroteText = true; void send({type: 'text', delta}); }});
+          // A follow-up tool round only starts while there is budget left; the text so far stands as the answer.
+          if (round > 0 && !deps.budget.canSpend()) break;
+          const turn = await llm({system: SYSTEM_PROMPT, messages, tools: TOOLS, signal: abort.signal, onText: delta => { wroteText = true; void send({type: 'text', delta}); }});
           deps.budget.record(turn.model, turn.usage);
           if (turn.stop_reason === 'refusal') { if (!wroteText) await send({type: 'text', delta: MSG.refused}); break; }
           const toolUses = turn.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
@@ -96,8 +113,11 @@ export function createTutor(deps: {catalog: Catalog; budget: BudgetMeter; limite
         }
         await send({type: 'done'});
       } catch (err) {
+        if (abort.signal.aborted) return;
         console.error('tutor:', err instanceof Error ? err.message : err);
         await send({type: 'error', message: MSG.failed});
+      } finally {
+        inFlight--;
       }
     });
   });

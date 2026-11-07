@@ -108,6 +108,61 @@ test('limits questions per IP using the proxy-appended address', async () => {
   expect((await second.json()).error).toMatch(/Muitas perguntas/);
 });
 
+test('closing the connection aborts the model call', async () => {
+  let seen: AbortSignal | undefined;
+  let release!: () => void;
+  const started = new Promise<void>(r => { release = r; });
+  const llm: LlmTurn = req => new Promise((_, reject) => {
+    seen = req.signal;
+    release();
+    req.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+  });
+  const app = createTutor({catalog, budget: new BudgetMeter({dailyUsd: 1, now: () => new Date()}), limiter: new RateLimiter({perHour: 30, now: () => 0}), llm});
+  const res = await app.request('/', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({question: 'oi', history: []})});
+  await started;
+  await res.body!.cancel();
+  await new Promise(r => setTimeout(r, 20));
+  expect(seen?.aborted).toBe(true);
+});
+
+test('only a few answers stream at the same time; extra ones get 429 busy', async () => {
+  let release!: () => void;
+  const gate = new Promise<void>(r => { release = r; });
+  const llm: LlmTurn = async req => { await gate; req.onText('ok'); return textTurn('ok'); };
+  const app = createTutor({catalog, budget: new BudgetMeter({dailyUsd: 1, now: () => new Date()}), limiter: new RateLimiter({perHour: 30, now: () => 0}), llm, maxConcurrent: 1});
+  const post = () => app.request('/', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({question: 'oi', history: []})});
+  const first = await post();
+  const second = await post();
+  expect(second.status).toBe(429);
+  expect((await second.json()).error).toMatch(/ocupado/);
+  release();
+  await first.text();
+  expect((await post()).status).toBe(200);
+});
+
+test('a tool round that crosses the budget does not start another model call', async () => {
+  const toolTurn = {
+    content: [{type: 'tool_use', id: 'tu1', name: 'find_structures', input: {query: 'pancreas'}}],
+    stop_reason: 'tool_use', usage: {input_tokens: 300_000, output_tokens: 0}, model: 'claude-opus-5-5',
+  } as unknown as Turn;
+  const {ask, calls} = setup([toolTurn, textTurn('nunca')], {dailyUsd: 1});
+  const ev = await events(await ask({question: 'onde?', history: []}));
+  expect(calls).toHaveLength(1);
+  expect(ev.at(-1)).toEqual({type: 'done'});
+});
+
+test('requests that are not JSON are refused (blocks cross-site form posts)', async () => {
+  const {app} = setup([]);
+  const res = await app.request('/', {method: 'POST', headers: {'content-type': 'text/plain'}, body: JSON.stringify({question: 'oi', history: []})});
+  expect(res.status).toBe(415);
+});
+
+test('oversized bodies are refused', async () => {
+  const {ask} = setup([]);
+  const res = await ask({question: 'oi', history: [], padding: 'x'.repeat(64 * 1024)});
+  expect(res.status).toBe(413);
+});
+
 test('without a model configured the tutor is unavailable (503)', async () => {
   const app = createTutor({catalog, budget: new BudgetMeter({dailyUsd: 1, now: () => new Date()}), limiter: new RateLimiter({perHour: 30, now: () => 0}), llm: null});
   const res = await app.request('/', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({question: 'oi', history: []})});

@@ -4,7 +4,7 @@ import type {LlmTurn} from './routes';
 /** Real model turn on the Claude API: streamed text, low effort, server-side refusal fallback. */
 export function createClaudeTurn(opts: {apiKey: string; model: string}): LlmTurn {
   const client = new Anthropic({apiKey: opts.apiKey});
-  return async ({system, messages, tools, onText}) => {
+  return async ({system, messages, tools, onText, signal}) => {
     const stream = client.beta.messages.stream({
       model: opts.model,
       max_tokens: 4000,
@@ -15,7 +15,7 @@ export function createClaudeTurn(opts: {apiKey: string; model: string}): LlmTurn
       system: [{type: 'text', text: system, cache_control: {type: 'ephemeral'}}],
       tools: tools as Anthropic.Beta.BetaTool[],
       messages: messages as Anthropic.Beta.BetaMessageParam[],
-    } as Anthropic.Beta.Messages.MessageCreateParamsStreaming);
+    } as Anthropic.Beta.Messages.MessageCreateParamsStreaming, {signal});
     stream.on('text', onText);
     const message = await stream.finalMessage();
     return {

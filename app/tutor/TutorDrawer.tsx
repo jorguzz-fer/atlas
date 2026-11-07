@@ -63,7 +63,7 @@ export function TutorDrawer(props: {open: boolean; onClose: () => void; selected
     <aside className="tutor" aria-label="Tutor de anatomia">
       <header>
         <div><Sparkles size={16} /> <strong>Tutor</strong></div>
-        <button className="pill round" onClick={props.onClose} aria-label="Fechar o tutor"><X size={16} /></button>
+        <button className="pill round" onClick={() => { abort.current?.abort(); props.onClose(); }} aria-label="Fechar o tutor"><X size={16} /></button>
       </header>
       {props.selected && <div className="tutor-context">Sobre: <strong>{props.selected.name}</strong></div>}
       <div className="tutor-log" ref={scroller} aria-live="polite">
