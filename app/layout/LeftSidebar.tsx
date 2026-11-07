@@ -4,6 +4,7 @@ import {SYSTEMS, type Atlas, type Concept, type SceneState, type SystemId} from 
 import {LAYERS, ORGANS_3D, QUICK_VIEWS, REGIONS, regionOf, type QuickViewId, type RegionId} from '../catalog';
 import type {NameIndex} from '../names';
 import {OrganIcon} from './OrganIcon';
+import {Carousel} from './Carousel';
 import {SearchBox} from './SearchBox';
 
 export type BrowseTab = 'regions' | 'systems' | 'layers';
@@ -56,14 +57,14 @@ export function LeftSidebar(props: {
 
         <section>
           <div className="section-title"><span>Órgãos em 3D</span><span className="count">{ORGANS_3D.length}</span></div>
-          <div className="carousel">
+          <Carousel label="Órgãos em 3D">
             {ORGANS_3D.map(o => (
               <button key={o.key} className="organ-card" aria-pressed={props.activeOrgan === o.key} onClick={() => props.onOrgan(o.key)}>
-                <OrganIcon organ={o.key} />
+                <OrganIcon organ={o.key} size={56} />
                 <span>{o.label}</span>
               </button>
             ))}
-          </div>
+          </Carousel>
         </section>
 
         <div className="tabs" role="tablist" aria-label="Navegar por">

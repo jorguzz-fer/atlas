@@ -31,7 +31,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .shell { display: grid; grid-template-columns: 284px 1fr 300px; grid-template-rows: 64px 1fr; height: 100%; }
 .header { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-bottom: 1px solid var(--line); background: var(--bg); }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: radial-gradient(circle at 35% 30%, #8fa8ff, #4a3aa8 60%, #1a1440); display: grid; place-items: center; }
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; background: radial-gradient(circle at 35% 30%, #8fa8ff, #4a3aa8 60%, #1a1440); display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 19px; line-height: 1; letter-spacing: -.02em; }
 .brand h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
 .brand small { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
 .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
@@ -60,7 +60,17 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .results .empty { padding: 10px; color: var(--muted); }
 .section-title { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; margin: 0 4px 8px; }
 .section-title .count { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: var(--card); }
-.carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
+.carousel-wrap { position: relative; }
+.carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px; cursor: grab; scrollbar-width: thin; scrollbar-color: #4a4a4a transparent; }
+.carousel.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.carousel::-webkit-scrollbar { height: 8px; }
+.carousel::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 8px; }
+.carousel::-webkit-scrollbar-thumb:hover { background: #6a6a6a; }
+.carousel-arrow { position: absolute; top: 44px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #1e1e1ef0; border: 1px solid var(--line-strong); box-shadow: 0 4px 14px #0008; }
+.carousel-arrow:hover { background: var(--card-hover); }
+.carousel-arrow.prev { left: -6px; }
+.carousel-arrow.next { right: -6px; }
+.organ-icon { display: block; object-fit: contain; pointer-events: none; }
 .organ-card { flex: 0 0 96px; height: 120px; scroll-snap-align: start; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 12.5px; }
 .organ-card:hover { background: var(--card-hover); }
 .organ-card[aria-pressed='true'] { border-color: #44507a; background: #1c2136; }
