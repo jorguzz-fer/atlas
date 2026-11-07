@@ -1,0 +1,22 @@
+[
+  {"concept": "stomach", "region": "abdomen"},
+  {"concept": "brain", "region": "head"},
+  {"concept": "right femur", "region": "legs"},
+  {"concept": "pancreas", "region": "abdomen"},
+  {"concept": "left humerus", "region": "arms"},
+  {"concept": "liver", "region": "abdomen"},
+  {"concept": "heart", "region": "chest"},
+  {"concept": "right kidney", "region": "abdomen"},
+  {"concept": "spleen", "region": "abdomen"},
+  {"concept": "urinary bladder", "region": "abdomen"},
+  {"concept": "trachea", "region": "chest"},
+  {"concept": "diaphragm", "region": "abdomen"},
+  {"concept": "sternum", "region": "chest"},
+  {"concept": "mandible", "region": "head"},
+  {"concept": "right scapula", "region": "chest"},
+  {"concept": "left clavicle", "region": "chest"},
+  {"concept": "right patella", "region": "legs"},
+  {"concept": "gallbladder", "region": "abdomen"},
+  {"concept": "spinal cord", "region": "chest"},
+  {"concept": "cerebellum", "region": "head"}
+]

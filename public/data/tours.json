@@ -1,0 +1,37 @@
+[
+  {
+    "id": "coracao",
+    "title": "Coração",
+    "steps": [
+      {"concept": "heart", "text": "O coração é uma bomba muscular com quatro câmaras, no mediastino, entre os pulmões. Vamos seguir o caminho do sangue."},
+      {"concept": "right atrium", "text": "O átrio direito recebe o sangue pobre em oxigênio que volta do corpo pelas veias cavas superior e inferior."},
+      {"concept": "right ventricle", "text": "O ventrículo direito bombeia esse sangue pelo tronco pulmonar até os pulmões, onde ele recebe oxigênio."},
+      {"concept": "left atrium", "text": "O átrio esquerdo recebe o sangue oxigenado que chega dos pulmões pelas quatro veias pulmonares."},
+      {"concept": "left ventricle", "text": "O ventrículo esquerdo, de parede mais espessa, impulsiona o sangue pela aorta para todo o corpo."}
+    ]
+  },
+  {
+    "id": "digestorio",
+    "title": "Sistema digestório",
+    "steps": [
+      {"concept": "esophagus", "text": "O esôfago leva o alimento da faringe ao estômago com ondas de contração chamadas peristaltismo."},
+      {"concept": "stomach", "text": "No estômago o alimento é misturado ao suco gástrico, com ácido e enzimas, e vira o quimo."},
+      {"concept": "duodenum", "text": "O duodeno é a primeira parte do intestino delgado; ali chegam a bile do fígado e o suco pancreático."},
+      {"concept": "jejunum", "text": "O jejuno, com muitas pregas e vilosidades, concentra boa parte da absorção de nutrientes."},
+      {"concept": "ileum", "text": "O íleo completa a absorção, incluindo vitamina B12 e sais biliares, e termina no ceco."},
+      {"concept": "large intestine", "text": "O intestino grosso absorve água e eletrólitos e forma as fezes ao longo do cólon."},
+      {"concept": "rectum", "text": "O reto armazena as fezes até a evacuação, pelo canal anal."}
+    ]
+  },
+  {
+    "id": "esqueleto-axial",
+    "title": "Esqueleto axial",
+    "steps": [
+      {"concept": "skull", "text": "O crânio protege o encéfalo e forma o esqueleto da face; a mandíbula é seu único osso móvel."},
+      {"concept": "vertebral column", "text": "A coluna vertebral sustenta o tronco e protege a medula espinal: são vértebras cervicais, torácicas, lombares, o sacro e o cóccix."},
+      {"concept": "rib cage", "text": "A caixa torácica, formada por costelas, cartilagens costais e esterno, protege coração e pulmões e participa da respiração."},
+      {"concept": "sternum", "text": "O esterno, no centro do tórax, tem manúbrio, corpo e processo xifoide; nele se articulam as costelas verdadeiras."},
+      {"concept": "sacrum", "text": "O sacro resulta da fusão de cinco vértebras e une a coluna à pelve pelas articulações sacroilíacas."}
+    ]
+  }
+]
