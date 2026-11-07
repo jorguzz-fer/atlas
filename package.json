@@ -12,7 +12,9 @@
     "test": "vitest run",
     "validate:atlas": "node scripts/validate-atlas.mjs",
     "build:server": "esbuild server/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist-server/index.js --banner:js=\"import {createRequire} from 'node:module';const require=createRequire(import.meta.url);\"",
-    "start": "node dist-server/index.js"
+    "start": "node dist-server/index.js",
+    "names:build": "node scripts/names/build.mjs",
+    "names:ai": "node scripts/names/fill-with-ai.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
