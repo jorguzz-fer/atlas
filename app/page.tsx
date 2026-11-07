@@ -3,7 +3,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {registerAtlasTools} from './agent-tools';
 import AnatomyScene, {type LabelTarget} from './scene';
 import {DEFAULT_VISIBLE, type Atlas, type Concept, type SceneState, type SystemId, type View} from './anatomy';
-import {ORGANS_3D, conceptsByName, type RegionId} from './catalog';
+import {ORGANS_3D, conceptsByName, correctAtlas, type RegionId} from './catalog';
 import {loadNames, type NameIndex} from './names';
 import type {ScreenLabel} from './scene-labels';
 import {AppShell} from './layout/AppShell';
@@ -11,6 +11,9 @@ import {Header} from './layout/Header';
 import {LeftSidebar, type BrowseTab} from './layout/LeftSidebar';
 import {CenterOverlays} from './layout/CenterOverlays';
 import {BottomBar} from './layout/BottomBar';
+import {RightPanel} from './layout/RightPanel';
+import {StructurePanel} from './layout/StructurePanel';
+import {CreditsDialog} from './layout/CreditsDialog';
 
 const initial: SceneState = {
   explode: 0, visible: DEFAULT_VISIBLE, selected: [], isolate: false, view: 'perspective', rotate: false, reset: 0,
@@ -31,13 +34,14 @@ export default function Home() {
   const [error, setError] = useState('');
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+  const [credits, setCredits] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const abort = new AbortController();
     fetch('/models/atlas.json', {signal: abort.signal})
       .then(r => { if (!r.ok) throw new Error('Não foi possível carregar o catálogo de anatomia.'); return r.json(); })
-      .then(async (data: Atlas) => { setAtlas(data); setNames(await loadNames(data)); })
+      .then(async (raw: Atlas) => { const data = correctAtlas(raw); setAtlas(data); setNames(await loadNames(data)); })
       .catch(e => { if (e.name !== 'AbortError') setError(e.message); });
     return () => abort.abort();
   }, []);
@@ -79,10 +83,18 @@ export default function Home() {
     choose(conceptById.get(p.conceptId) ?? {id: p.conceptId, name: p.name, elements: [id]});
   }, [parts, conceptById, choose]);
 
-  const chooseOrgan = (key: string) => {
+  // A single-concept organ keeps its real atlas concept (Portuguese name, FMA id, explanation);
+  // a pair like the lungs becomes a group named in Portuguese.
+  const organConcept = (key: string): Concept | null => {
     const group = organGroups.find(o => o.key === key);
-    if (!group) return;
-    choose(group.concept, {isolate: true});
+    if (!group || !atlas) return null;
+    const single = group.concepts.length === 1 ? atlas.concepts.find(c => c.name === group.concepts[0]) : undefined;
+    return single ?? {...group.concept, name: group.label};
+  };
+  const chooseOrgan = (key: string) => {
+    const c = organConcept(key);
+    if (!c) return;
+    choose(c, {isolate: true});
     setActiveOrgan(key);
   };
 
@@ -92,7 +104,7 @@ export default function Home() {
     // Organ labels only when the organs can actually be seen (muscles hidden or see-through).
     const organsExposed = !state.visible.includes('muscular') || state.layers.muscles < 0.5;
     const t: LabelTarget[] = organsExposed ? organGroups.map(o => ({id: o.key, parts: o.concept.elements})) : [];
-    if (chosen && !organGroups.some(o => o.concept.id === chosen.id)) t.push({id: `chosen:${chosen.id}`, parts: chosen.elements});
+    if (chosen && !organGroups.some(o => o.concept.id === chosen.id || (o.concepts.length === 1 && o.concepts[0] === chosen.name))) t.push({id: `chosen:${chosen.id}`, parts: chosen.elements});
     return t;
   }, [organGroups, chosen, state.visible, state.layers.muscles]);
 
@@ -102,8 +114,8 @@ export default function Home() {
   };
   const onLabelClick = (id: string) => {
     if (id.startsWith('chosen:')) return;
-    const group = organGroups.find(o => o.key === id);
-    if (group) choose(group.concept);
+    const c = organConcept(id);
+    if (c) choose(c);
   };
 
   const resetAll = () => {
@@ -117,7 +129,7 @@ export default function Home() {
     <Header
       onAskTutor={() => setRightOpen(true)}
       onReset={resetAll}
-      onCredits={() => {}}
+      onCredits={() => setCredits(true)}
       onToggleLeft={() => { setLeftOpen(o => !o); setRightOpen(false); }}
       onToggleRight={() => { setRightOpen(o => !o); setLeftOpen(false); }}
     />
@@ -141,7 +153,7 @@ export default function Home() {
       onLayer={(layer, value) => setState(s => ({...s, layers: {...s.layers, [layer]: value}}))}
       onToggleLabels={() => setState(s => ({...s, labels: !s.labels}))}
       onLearn={() => {}}
-      onCredits={() => {}}
+      onCredits={() => setCredits(true)}
     />
   );
 
@@ -180,5 +192,26 @@ export default function Home() {
     </>
   );
 
-  return <AppShell header={header} left={left} center={center} right={<div />} leftOpen={leftOpen} rightOpen={rightOpen} />;
+  const right = chosen && atlas ? (
+    <StructurePanel
+      atlas={atlas}
+      names={names}
+      concept={chosen}
+      focus={state.focus}
+      isolate={state.isolate}
+      onFocus={() => setState(s => ({...s, focus: !s.focus, isolate: false}))}
+      onIsolate={() => setState(s => ({...s, isolate: !s.isolate, focus: false, explode: 0}))}
+      onAskTutor={() => {}}
+      onClose={() => { setChosen(null); setActiveOrgan(null); setState(s => ({...s, selected: [], isolate: false, focus: false})); }}
+    />
+  ) : (
+    <RightPanel onOrgan={chooseOrgan} onTours={() => {}} />
+  );
+
+  return (
+    <>
+      <AppShell header={header} left={left} center={center} right={right} leftOpen={leftOpen} rightOpen={rightOpen} />
+      <CreditsDialog open={credits} onClose={() => setCredits(false)} />
+    </>
+  );
 }

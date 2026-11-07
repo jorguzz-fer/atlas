@@ -155,3 +155,31 @@ input[type='range']::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   .seg { padding: 0 10px; height: 34px; font-size: 12.5px; }
   .compass { display: none; }
 }
+
+/* ---------- painéis da direita ---------- */
+.panel-title { margin: 0 0 8px; font-size: 21px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; }
+.panel-text { margin: 0; color: var(--muted); line-height: 1.55; }
+.row.feature { padding: 12px 14px; }
+.muted { color: var(--muted); }
+.hint { display: flex; gap: 8px; color: var(--faint); font-size: 12px; line-height: 1.5; margin: 0; }
+.hint svg { flex: none; margin-top: 2px; }
+.structure { display: flex; flex-direction: column; gap: 12px; }
+.structure-head { display: flex; align-items: center; gap: 8px; }
+.latin { margin: -6px 0 0; font-style: italic; color: var(--muted); }
+.ai-badge { align-self: flex-start; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #3a2a10; color: var(--amber); }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
+.facts dt { color: var(--faint); }
+.facts dd { margin: 0; }
+.mono { font-family: var(--mono); font-size: 12px; }
+.actions { display: flex; gap: 6px; }
+.actions .seg { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); }
+
+/* ---------- diálogo ---------- */
+.dialog { width: min(560px, 92vw); max-height: 85vh; border-radius: 18px; border: 1px solid var(--line-strong); background: var(--card); color: var(--text); padding: 22px 24px; line-height: 1.55; }
+.dialog::backdrop { background: #000a; }
+.dialog header { display: flex; align-items: center; justify-content: space-between; }
+.dialog h2 { margin: 0; font-size: 20px; }
+.dialog h3 { margin: 18px 0 4px; font-size: 14px; }
+.dialog p { margin: 0 0 8px; color: #cfcfcf; }
+.dialog a { color: var(--accent); }
+.dialog .warn { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #3a2a10; color: var(--amber); }

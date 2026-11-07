@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {regionOf, layerOf, ORGANS_3D, QUICK_VIEWS, conceptsByName} from './catalog';
+import {regionOf, layerOf, ORGANS_3D, QUICK_VIEWS, conceptsByName, correctSystem, correctAtlas} from './catalog';
 import type {Atlas, Part} from './anatomy';
 
 const atlas: Atlas = JSON.parse(fs.readFileSync(new URL('../public/models/atlas.json', import.meta.url), 'utf8'));
@@ -42,6 +42,34 @@ test('conceptsByName merges concepts without duplicating pieces', () => {
 
 test('conceptsByName rejects unknown names', () => {
   expect(() => conceptsByName(atlas, ['nao existe'], 'x')).toThrow(/nao existe/);
+});
+
+test.each([
+  ['Hepatovenous segment VIII', 'venous', 'digestive'],
+  ['Right fibularis longus', 'skeletal', 'muscular'],
+  ['Left tibialis anterior', 'skeletal', 'muscular'],
+  ['Right tensor fasciae latae', 'connective', 'muscular'],
+  ['Right subscapularis', 'skeletal', 'muscular'],
+  ['Left levator scapulae', 'skeletal', 'muscular'],
+  ['Right iliotibial tract', 'skeletal', 'connective'],
+  ['Flexor retinaculum of left wrist', 'sensory', 'connective'],
+  ['Left common tendinous ring', 'sensory', 'connective'],
+  ['Third ventricle', 'cardiac', 'nervous'],
+  ['Left lateral ventricle', 'cardiac', 'nervous'],
+  ['Interventricular foramen', 'cardiac', 'nervous'],
+  ['Choroid plexus of cerebral hemisphere', 'sensory', 'nervous'],
+  ['Left ventricle', 'cardiac', 'cardiac'],
+  ['Right portal vein', 'venous', 'venous'],
+])('correctSystem(%s from %s) → %s', (name, from, to) => {
+  expect(correctSystem({name, system: from} as Part)).toBe(to);
+});
+
+test('correctAtlas fixes the misfiled liver lobes in the real data', () => {
+  const fixed = correctAtlas(atlas);
+  const liver = fixed.concepts.find(c => c.name === 'liver')!;
+  const lobes = fixed.parts.filter(p => liver.elements.includes(p.id) && /Hepatovenous segment/.test(p.name));
+  expect(lobes.length).toBeGreaterThan(0);
+  expect(lobes.every(p => p.system === 'digestive')).toBe(true);
 });
 
 test('quick views show the systems of their layer', () => {

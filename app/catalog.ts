@@ -59,6 +59,24 @@ export const ORGANS_3D: {key: OrganIcon; label: string; concepts: string[]}[] = 
   {key: 'eyes', label: 'Olhos', concepts: ['right eyeball', 'left eyeball']},
 ];
 
+// BodyParts3D files some structures under the wrong display system. Names and FMA ids stay unchanged;
+// only the colour/system grouping is corrected.
+const SYSTEM_FIXES: [RegExp, SystemId][] = [
+  [/^hepatovenous segment\b/i, 'digestive'],
+  [/\b(fibularis|tibialis (anterior|posterior)|subscapularis|levator scapulae|tensor fasciae latae)\b/i, 'muscular'],
+  [/\b(iliotibial tract|flexor retinaculum|common tendinous ring)\b/i, 'connective'],
+  [/\b(third ventricle|fourth ventricle|lateral ventricle|interventricular foramen|choroid plexus)\b/i, 'nervous'],
+];
+
+export function correctSystem(part: Pick<Part, 'name' | 'system'>): SystemId {
+  for (const [pattern, system] of SYSTEM_FIXES) if (pattern.test(part.name)) return system;
+  return part.system;
+}
+
+export function correctAtlas(atlas: Atlas): Atlas {
+  return {...atlas, parts: atlas.parts.map(p => ({...p, system: correctSystem(p)}))};
+}
+
 /** Joins several atlas concepts (by English name) into one selectable group. */
 export function conceptsByName(atlas: Atlas, names: string[], key: string): Concept {
   const elements = new Set<string>();
