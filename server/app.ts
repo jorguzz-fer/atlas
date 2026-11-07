@@ -14,6 +14,7 @@ const TYPES: Record<string, string> = {
   '.txt': 'text/plain; charset=utf-8',
   // Model chunks: the browser decompresses them itself, so they are served as opaque bytes.
   '.gz': 'application/octet-stream',
+  '.glb': 'model/gltf-binary',
 };
 
 async function readInside(root: string, urlPath: string): Promise<Buffer | null> {

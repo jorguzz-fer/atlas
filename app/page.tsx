@@ -18,6 +18,8 @@ import {tourReducer, type Tour, type TourState} from './learn/tour';
 import {checkAnswer, quizReducer, shuffled, type QuizItem, type QuizState} from './learn/quiz';
 import {QuizCard, TourCard, TourPicker} from './learn/LearnOverlay';
 import {TutorDrawer} from './tutor/TutorDrawer';
+import {OrganViewer} from './organs/OrganViewer';
+import {ORGAN_MODELS, organModelFor} from './organs/organ-models';
 
 const initial: SceneState = {
   explode: 0, visible: DEFAULT_VISIBLE, selected: [], isolate: false, view: 'perspective', rotate: false, reset: 0,
@@ -40,6 +42,7 @@ export default function Home() {
   const [rightOpen, setRightOpen] = useState(false);
   const [credits, setCredits] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
+  const [organView, setOrganView] = useState<string | null>(null);
   const [tours, setTours] = useState<Tour[]>([]);
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [tourPicker, setTourPicker] = useState(false);
@@ -250,6 +253,9 @@ export default function Home() {
     </>
   );
 
+  const detailedModel = organModelFor(activeOrgan) ?? ORGAN_MODELS.find(m => m.bodyConcept === chosen?.name);
+  const openModel = organModelFor(organView);
+
   const right = chosen && atlas ? (
     <StructurePanel
       atlas={atlas}
@@ -260,6 +266,7 @@ export default function Home() {
       onFocus={() => setState(s => ({...s, focus: !s.focus, isolate: false}))}
       onIsolate={() => setState(s => ({...s, isolate: !s.isolate, focus: false, explode: 0}))}
       onAskTutor={() => { setTutorOpen(true); setLeftOpen(false); }}
+      onDetailed={detailedModel ? () => setOrganView(detailedModel.key) : undefined}
       onClose={() => { setChosen(null); setActiveOrgan(null); setState(s => ({...s, selected: [], isolate: false, focus: false})); }}
     />
   ) : (
@@ -279,6 +286,18 @@ export default function Home() {
           />
         }
       />
+      {openModel && (
+        <OrganViewer
+          model={openModel}
+          onClose={() => setOrganView(null)}
+          onAskTutor={h => { const c = conceptByName(h.concept); if (c) choose(c); setTutorOpen(true); }}
+          onShowInBody={h => {
+            setOrganView(null);
+            const c = h && conceptByName(h.concept);
+            if (c) choose(c, {focus: true}); else chooseOrgan(openModel.key);
+          }}
+        />
+      )}
       <CreditsDialog open={credits} onClose={() => setCredits(false)} />
     </>
   );
