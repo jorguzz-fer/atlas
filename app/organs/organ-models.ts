@@ -17,6 +17,8 @@ export type OrganModel = {
   bodyConcepts: string[];
   /** Scales the model so its largest side has this size. Omitted for the heart, whose markers predate it. */
   fit?: number;
+  /** Initial rotation in radians [x, y, z], so the model opens in anatomical (front) view. */
+  rotation?: [number, number, number];
   hotspots: Hotspot[];
 };
 
@@ -133,6 +135,109 @@ export const ORGAN_MODELS: OrganModel[] = [
       {id: 'temporal-d', name: 'Lobo temporal direito', p: [-0.456, -0.115, 0.141], concept: 'right temporal lobe'},
       {id: 'temporal-e', name: 'Lobo temporal esquerdo', p: [0.43, -0.126, 0.105], concept: 'left temporal lobe'},
       {id: 'bulbo', name: 'Bulbo (tronco encefálico)', p: [-0.109, -0.405, -0.068], concept: 'medulla oblongata'},
+    ],
+  },
+  {
+    key: 'liver',
+    eyebrow: 'Sistema digestório',
+    title: 'O fígado em 3D',
+    url: '/models/organs/liver.glb?v=1',
+    credit: {
+      title: 'Human liver and gallbladder',
+      author: 'ElliotSS',
+      authorUrl: 'https://sketchfab.com/ElliotSS',
+      source: 'https://sketchfab.com/3d-models/human-liver-and-gallbladder-6c4e9bd0d49f4828b804259330c0c6c4',
+    },
+    bodyConcepts: ['liver', 'gallbladder'],
+    fit: 1.6,
+    rotation: [0, -Math.PI / 2, 0],
+    hotspots: [
+      {id: 'ld', name: 'Lobo direito do fígado', p: [-0.337, -0.043, 0.449], concept: 'right lobe of liver'},
+      {id: 'le', name: 'Lobo esquerdo do fígado', p: [0.473, 0.204, 0.314], concept: 'left lobe of liver'},
+      {id: 'falciforme', name: 'Ligamento falciforme (limite entre os lobos)', p: [0.176, -0.02, 0.282]},
+      {id: 'vci', name: 'Veia cava inferior', p: [-0.164, 0.01, -0.325], concept: 'inferior vena cava'},
+      {id: 'porta', name: 'Veia porta', p: [-0.11, -0.113, -0.204], concept: 'hepatic portal vein'},
+      {id: 'arteria', name: 'Artéria hepática própria', p: [-0.065, -0.223, -0.156], concept: 'hepatic artery proper'},
+      {id: 'vesicula', name: 'Vesícula biliar', p: [-0.195, -0.387, -0.071], concept: 'gallbladder'},
+    ],
+  },
+  {
+    key: 'pancreas',
+    eyebrow: 'Sistema digestório',
+    title: 'O pâncreas em 3D',
+    url: '/models/organs/pancreas.glb?v=1',
+    credit: {
+      title: 'Human Pancreas Cross section',
+      author: 'arloopa',
+      authorUrl: 'https://sketchfab.com/arloopa',
+      source: 'https://sketchfab.com/3d-models/human-pancreas-cross-section-f7b30e11b5df445fbdfe0e262e777c85',
+    },
+    bodyConcepts: ['pancreas'],
+    fit: 1.6,
+    hotspots: [
+      {id: 'cabeca', name: 'Cabeça do pâncreas', p: [-0.283, -0.124, 0.184], concept: 'pancreas'},
+      {id: 'corpo', name: 'Corpo do pâncreas', p: [0.29, 0.048, 0.082], concept: 'pancreas'},
+      {id: 'cauda', name: 'Cauda do pâncreas', p: [0.695, 0.07, 0.028], concept: 'pancreas'},
+      {id: 'ducto', name: 'Ducto pancreático principal', p: [0.136, 0, 0.106], concept: 'pancreatic duct'},
+      {id: 'bulbo', name: 'Duodeno: parte superior (bulbo)', p: [0.027, 0.496, -0.05], concept: 'duodenum'},
+      {id: 'descendente', name: 'Duodeno: parte descendente', p: [-0.72, 0.089, -0.12], concept: 'duodenum'},
+      {id: 'pregas', name: 'Pregas circulares da mucosa', p: [-0.602, 0.145, -0.147], concept: 'duodenum'},
+      {id: 'horizontal', name: 'Duodeno: parte horizontal', p: [-0.423, -0.565, 0.078], concept: 'duodenum'},
+      {id: 'ascendente', name: 'Duodeno: parte ascendente', p: [0.193, -0.326, -0.11], concept: 'duodenum'},
+    ],
+  },
+  {
+    key: 'small-intestine',
+    eyebrow: 'Sistema digestório',
+    title: 'Os intestinos em 3D',
+    url: '/models/organs/intestines.glb?v=1',
+    credit: {
+      title: 'Small and large intestine',
+      author: 'antonia.sundberg',
+      authorUrl: 'https://sketchfab.com/antonia.sundberg',
+      source: 'https://sketchfab.com/3d-models/small-and-large-intestine-8a1ca8e3ca224cdeb9264674416bde38',
+    },
+    bodyConcepts: ['small intestine', 'large intestine'],
+    fit: 1.6,
+    hotspots: [
+      {id: 'jejuno', name: 'Jejuno', p: [0.196, 0.315, 0.167], concept: 'jejunum'},
+      {id: 'ileo', name: 'Íleo', p: [-0.209, -0.256, 0.123], concept: 'ileum'},
+      {id: 'ceco', name: 'Ceco', p: [-0.463, -0.278, 0.189], concept: 'cecum'},
+      {id: 'apendice', name: 'Apêndice vermiforme', p: [-0.325, -0.458, 0.045], concept: 'appendix'},
+      {id: 'ascendente', name: 'Colo ascendente', p: [-0.551, 0.137, 0.103], concept: 'ascending colon'},
+      {id: 'transverso', name: 'Colo transverso', p: [0.05, 0.503, 0.312], concept: 'transverse colon'},
+      {id: 'descendente', name: 'Colo descendente', p: [0.521, 0.059, 0.012], concept: 'descending colon'},
+      {id: 'sigmoide', name: 'Colo sigmoide', p: [0.261, -0.391, 0.135], concept: 'large intestine'},
+      {id: 'reto', name: 'Reto', p: [0.011, -0.679, -0.176], concept: 'rectum'},
+    ],
+  },
+  {
+    key: 'eyes',
+    eyebrow: 'Órgãos dos sentidos',
+    title: 'O olho e seus músculos',
+    url: '/models/organs/eye.glb?v=1',
+    credit: {
+      title: 'Muscles of the Orbit (Eye)',
+      author: 'thunderpig',
+      authorUrl: 'https://sketchfab.com/thunderpig',
+      source: 'https://sketchfab.com/3d-models/muscles-of-the-orbit-eye-2183957b3c3d493da716eb471ab6b517',
+    },
+    bodyConcepts: ['right eyeball', 'left eyeball'],
+    fit: 1.6,
+    // Right eye seen from the lateral side and slightly above, so the muscles show.
+    rotation: [0.35, 1.0, 0],
+    hotspots: [
+      {id: 'esclera', name: 'Esclera (bulbo do olho)', p: [0.275, 0, 0.508], concept: 'sclera'},
+      {id: 'cornea', name: 'Córnea', p: [0.585, -0.035, 0.334], concept: 'right cornea'},
+      {id: 'nervo', name: 'Nervo óptico', p: [-0.263, 0.196, -0.158], concept: 'right optic nerve'},
+      {id: 'anel', name: 'Anel tendíneo comum', p: [-0.513, 0.427, -0.296], concept: 'right common tendinous ring'},
+      {id: 'rs', name: 'Músculo reto superior', p: [0.204, 0.346, 0.226], concept: 'right superior rectus'},
+      {id: 'rl', name: 'Músculo reto lateral', p: [-0.083, -0.122, 0.4], concept: 'right lateral rectus'},
+      {id: 'rm', name: 'Músculo reto medial', p: [0.173, 0.02, -0.336], concept: 'right medial rectus'},
+      {id: 'ri', name: 'Músculo reto inferior', p: [-0.165, -0.167, -0.131], concept: 'right inferior rectus'},
+      {id: 'os', name: 'Músculo oblíquo superior', p: [0.079, 0.263, 0.331], concept: 'right superior oblique'},
+      {id: 'troclea', name: 'Tróclea do oblíquo superior', p: [0.541, 0.433, -0.021], concept: 'trochlea of superior oblique'},
+      {id: 'oi', name: 'Músculo oblíquo inferior', p: [-0.149, -0.283, 0.188], concept: 'right inferior oblique'},
     ],
   },
 ];

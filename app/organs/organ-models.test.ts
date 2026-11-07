@@ -32,6 +32,6 @@ test('label visibility follows the mode', () => {
 });
 
 test('organs without a detailed model return nothing', () => {
-  expect(organModelFor('liver')).toBeUndefined();
+  expect(organModelFor('stomach')).toBeUndefined();
   expect(organModelFor(null)).toBeUndefined();
 });

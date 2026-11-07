@@ -85,6 +85,7 @@ export function OrganViewer(props: {
       if (disposed) return;
       // Same preparation as the lesson, so the marker coordinates line up: centre on the bounding box.
       const r = gltf.scene;
+      if (model.rotation) { r.rotation.set(...model.rotation); r.updateMatrixWorld(true); }
       if (model.fit) {
         const size = new T.Box3().setFromObject(r).getSize(new T.Vector3());
         r.scale.multiplyScalar(model.fit / Math.max(size.x, size.y, size.z));
@@ -118,7 +119,7 @@ export function OrganViewer(props: {
       if (!root) return null;
       ray.setFromCamera(new T.Vector2(fx * 2 - 1, -(fy * 2 - 1)), camera);
       const hit = ray.intersectObject(root, true)[0];
-      return hit ? hit.point.toArray().map(x => +x.toFixed(3)) : null;
+      return hit ? [...hit.point.toArray().map(x => +x.toFixed(3)), hit.object.name] : null;
     };
     if (editorEnabled()) (window as unknown as {organProject?: unknown}).organProject = (p: [number, number, number]) => {
       const q = new T.Vector3(...p).project(camera);
