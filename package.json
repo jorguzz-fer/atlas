@@ -7,10 +7,12 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3016",
-    "build": "vite build",
+    "build": "vite build && npm run build:server",
     "check": "tsc --noEmit",
     "test": "vitest run",
-    "validate:atlas": "node scripts/validate-atlas.mjs"
+    "validate:atlas": "node scripts/validate-atlas.mjs",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist-server/index.js",
+    "start": "node dist-server/index.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
@@ -42,6 +44,7 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
+    "esbuild": "^0.28.2",
     "meshoptimizer": "^1.2.0",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
