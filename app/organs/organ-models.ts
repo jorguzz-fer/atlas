@@ -11,6 +11,8 @@ export type OrganModel = {
   credit: {title: string; author: string; authorUrl: string; source: string};
   /** BodyParts3D concept names (English) shown when the student returns to the body. */
   bodyConcept: string;
+  /** Scales the model so its largest side has this size. Omitted for the heart, whose markers predate it. */
+  fit?: number;
   hotspots: Hotspot[];
 };
 

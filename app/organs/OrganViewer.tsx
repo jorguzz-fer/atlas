@@ -3,10 +3,14 @@ import * as T from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import {ArrowLeft, MessageCircle, PersonStanding} from 'lucide-react';
+import {ArrowLeft, Copy, MessageCircle, PersonStanding, Plus} from 'lucide-react';
 import {labelShown, type Hotspot, type LabelMode, type OrganModel} from './organ-models';
 
 const HOME = new T.Vector3(0, 0, 4.2);
+
+/** A marker placed in the editor (?marcadores), not yet part of the code. */
+type Draft = {name: string; p: [number, number, number]};
+const editorEnabled = () => typeof location !== 'undefined' && new URLSearchParams(location.search).has('marcadores');
 
 /**
  * Detailed, textured model of one organ with numbered markers, as in the lessons:
@@ -26,6 +30,16 @@ export function OrganViewer(props: {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<ReadonlySet<string>>(new Set());
   const [status, setStatus] = useState<'loading' | 'ready' | string>('loading');
+  const [editor] = useState(editorEnabled);
+  const [placing, setPlacing] = useState(false);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [pending, setPending] = useState<Draft['p'] | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [copied, setCopied] = useState(false);
+  const draftsRef = useRef(drafts); draftsRef.current = drafts;
+  const placingRef = useRef(placing); placingRef.current = placing;
+  const onTap = useRef<(p: Draft['p']) => void>(() => {});
+  onTap.current = p => { setPending(p); setDraftName(''); };
 
   useEffect(() => {
     const el = stage.current!;
@@ -71,6 +85,11 @@ export function OrganViewer(props: {
       if (disposed) return;
       // Same preparation as the lesson, so the marker coordinates line up: centre on the bounding box.
       const r = gltf.scene;
+      if (model.fit) {
+        const size = new T.Box3().setFromObject(r).getSize(new T.Vector3());
+        r.scale.multiplyScalar(model.fit / Math.max(size.x, size.y, size.z));
+        r.updateMatrixWorld(true);
+      }
       r.position.sub(new T.Box3().setFromObject(r).getCenter(new T.Vector3()));
       r.traverse(o => {
         if (o instanceof T.Mesh) {
@@ -84,6 +103,18 @@ export function OrganViewer(props: {
     }).catch(() => { if (!disposed) setStatus('Não foi possível carregar o modelo 3D. Recarregue a página.'); });
 
     const ray = new T.Raycaster(), v = new T.Vector3(), d = new T.Vector3();
+    // Editor: a click (not a drag) on the model proposes a new marker at that point.
+    let down: [number, number] | null = null;
+    const onDown = (e: PointerEvent) => { down = [e.clientX, e.clientY]; };
+    const onUp = (e: PointerEvent) => {
+      if (!placingRef.current || !root || !down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      ray.setFromCamera(new T.Vector2((e.clientX - rect.left) / rect.width * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
+      const hit = ray.intersectObject(root, true)[0];
+      if (hit) onTap.current(hit.point.toArray().map(x => +x.toFixed(3)) as Draft['p']);
+    };
+    renderer.domElement.addEventListener('pointerdown', onDown);
+    renderer.domElement.addEventListener('pointerup', onUp);
     const hidden = new Map<string, boolean>();
     const animate = () => {
       if (disposed) return;
@@ -99,7 +130,8 @@ export function OrganViewer(props: {
       renderer.render(scene, camera);
       // Markers follow the model; those behind it fade out (checked every 4 frames).
       const occlusion = root && n++ % 4 === 0;
-      for (const h of model.hotspots) {
+      const all = [...model.hotspots, ...draftsRef.current.map((x, i) => ({id: `draft-${i}`, p: x.p}))];
+      for (const h of all) {
         const dot = dots.current.get(h.id);
         if (!dot) continue;
         v.set(...h.p).project(camera);
@@ -122,6 +154,8 @@ export function OrganViewer(props: {
       observer.disconnect();
       controls.dispose();
       renderer.domElement.removeEventListener('dblclick', reset);
+      renderer.domElement.removeEventListener('pointerdown', onDown);
+      renderer.domElement.removeEventListener('pointerup', onUp);
       scene.traverse(o => {
         if (o instanceof T.Mesh) {
           o.geometry.dispose();
@@ -190,6 +224,31 @@ export function OrganViewer(props: {
             <PersonStanding size={16} /> {current && !nameHidden(current) ? 'Ver no corpo inteiro' : 'Ver o órgão no corpo inteiro'}
           </button>
         </div>
+        {editor && (
+          <div className="organ-editor">
+            <strong>Editor de marcadores</strong>
+            <p>Ative “Posicionar”, clique sobre o modelo e dê um nome ao ponto. Depois copie a lista e mande para o desenvolvedor.</p>
+            <div className="organ-chips">
+              <button className="pill" aria-pressed={placing} onClick={() => setPlacing(p => !p)}><Plus size={14} /> Posicionar</button>
+              <button className="pill" disabled={!drafts.length} onClick={() => {
+                const text = JSON.stringify(drafts.map((x, i) => ({id: `m${i + 1}`, name: x.name, p: x.p, concept: ''})), null, 1);
+                void navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+              }}><Copy size={14} /> {copied ? 'Copiado!' : `Copiar (${drafts.length})`}</button>
+            </div>
+            {pending && (
+              <form className="organ-draft" onSubmit={e => { e.preventDefault(); setDrafts(d => [...d, {name: draftName.trim() || `Marcador ${d.length + 1}`, p: pending}]); setPending(null); }}>
+                <input autoFocus value={draftName} onChange={e => setDraftName(e.target.value)} placeholder="Nome da estrutura" aria-label="Nome da estrutura" maxLength={60} />
+                <button className="pill" type="submit">Salvar</button>
+                <button className="pill" type="button" onClick={() => setPending(null)}>Cancelar</button>
+              </form>
+            )}
+            {drafts.length > 0 && (
+              <ol className="organ-drafts">
+                {drafts.map((x, i) => <li key={i}><span>+{i + 1} {x.name}</span><button onClick={() => setDrafts(d => d.filter((_, j) => j !== i))} aria-label={`Remover ${x.name}`}>remover</button></li>)}
+              </ol>
+            )}
+          </div>
+        )}
         <p className="organ-credit">
           Modelo 3D: “<a href={model.credit.source} target="_blank" rel="noreferrer">{model.credit.title}</a>”, por <a href={model.credit.authorUrl} target="_blank" rel="noreferrer">{model.credit.author}</a> (Sketchfab), licença <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>.
         </p>
@@ -206,6 +265,11 @@ export function OrganViewer(props: {
             >
               <span className="dot">{i + 1}</span>
               <span className="lbl">{h.name}</span>
+            </button>
+          ))}
+          {drafts.map((x, i) => (
+            <button key={`draft-${i}`} ref={b => { if (b) dots.current.set(`draft-${i}`, b); else dots.current.delete(`draft-${i}`); }} className="hot draft show">
+              <span className="dot">+{i + 1}</span><span className="lbl">{x.name}</span>
             </button>
           ))}
         </div>

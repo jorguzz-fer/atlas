@@ -261,3 +261,11 @@ input[type='range']::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 }
 .foot-btn.detailed { border-color: #6b3a33; background: #2a1715; color: #ffd9d0; }
 .foot-btn.detailed:hover { background: #3a1f1c; }
+.organ-stage .hot.draft .dot { border-color: #8fd1ff; color: #8fd1ff; width: auto; min-width: 26px; padding: 0 5px; border-radius: 13px; }
+.organ-editor { display: grid; gap: 8px; padding: 12px; border: 1px dashed #4a5a7a; border-radius: 12px; background: #141822; font-size: 13px; }
+.organ-editor p { margin: 0; color: var(--muted); line-height: 1.45; }
+.organ-draft { display: flex; gap: 6px; }
+.organ-draft input { flex: 1; min-width: 0; height: 36px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--panel); padding: 0 10px; }
+.organ-drafts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.organ-drafts li { display: flex; justify-content: space-between; gap: 8px; color: #cfe6ff; }
+.organ-drafts button { color: var(--muted); font-size: 12px; }
