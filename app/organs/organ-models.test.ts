@@ -13,8 +13,8 @@ test('the heart has the 16 markers of the lesson, each with a unique id', () => 
 
 test('every marker and organ points at a structure that exists in the body atlas', () => {
   for (const m of ORGAN_MODELS) {
-    expect(names.has(m.bodyConcept)).toBe(true);
-    for (const h of m.hotspots) expect([h.id, names.has(h.concept)]).toEqual([h.id, true]);
+    for (const c of m.bodyConcepts) expect([m.key, c, names.has(c)]).toEqual([m.key, c, true]);
+    for (const h of m.hotspots) if (h.concept) expect([h.id, names.has(h.concept)]).toEqual([h.id, true]);
   }
 });
 

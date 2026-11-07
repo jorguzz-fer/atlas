@@ -269,3 +269,4 @@ input[type='range']::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .organ-drafts { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .organ-drafts li { display: flex; justify-content: space-between; gap: 8px; color: #cfe6ff; }
 .organ-drafts button { color: var(--muted); font-size: 12px; }
+.credit-list { margin: 0 0 6px; padding-left: 18px; line-height: 1.6; }

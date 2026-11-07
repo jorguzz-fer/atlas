@@ -253,7 +253,7 @@ export default function Home() {
     </>
   );
 
-  const detailedModel = organModelFor(activeOrgan) ?? ORGAN_MODELS.find(m => m.bodyConcept === chosen?.name);
+  const detailedModel = organModelFor(activeOrgan) ?? ORGAN_MODELS.find(m => !!chosen && m.bodyConcepts.includes(chosen.name));
   const openModel = organModelFor(organView);
 
   const right = chosen && atlas ? (
@@ -290,10 +290,10 @@ export default function Home() {
         <OrganViewer
           model={openModel}
           onClose={() => setOrganView(null)}
-          onAskTutor={h => { const c = conceptByName(h.concept); if (c) choose(c); setTutorOpen(true); }}
+          onAskTutor={h => { const c = h.concept ? conceptByName(h.concept) : organConcept(openModel.key); if (c) choose(c); setTutorOpen(true); }}
           onShowInBody={h => {
             setOrganView(null);
-            const c = h && conceptByName(h.concept);
+            const c = h?.concept && conceptByName(h.concept);
             if (c) choose(c, {focus: true}); else chooseOrgan(openModel.key);
           }}
         />

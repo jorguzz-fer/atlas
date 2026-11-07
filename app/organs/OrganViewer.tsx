@@ -113,6 +113,17 @@ export function OrganViewer(props: {
       const hit = ray.intersectObject(root, true)[0];
       if (hit) onTap.current(hit.point.toArray().map(x => +x.toFixed(3)) as Draft['p']);
     };
+    // Editor only: lets a script read the model point under a stage position (fractions 0..1 of width/height).
+    if (editorEnabled()) (window as unknown as {organPick?: unknown}).organPick = (fx: number, fy: number) => {
+      if (!root) return null;
+      ray.setFromCamera(new T.Vector2(fx * 2 - 1, -(fy * 2 - 1)), camera);
+      const hit = ray.intersectObject(root, true)[0];
+      return hit ? hit.point.toArray().map(x => +x.toFixed(3)) : null;
+    };
+    if (editorEnabled()) (window as unknown as {organProject?: unknown}).organProject = (p: [number, number, number]) => {
+      const q = new T.Vector3(...p).project(camera);
+      return [+((q.x + 1) / 2).toFixed(3), +((1 - q.y) / 2).toFixed(3)];
+    };
     renderer.domElement.addEventListener('pointerdown', onDown);
     renderer.domElement.addEventListener('pointerup', onUp);
     const hidden = new Map<string, boolean>();

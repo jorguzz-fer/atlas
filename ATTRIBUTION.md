@@ -34,3 +34,11 @@ This is a reference assembly with whole-body surface and selected organs, includ
 https://sketchfab.com/3d-models/realistic-human-heart-3f8072336ce94d18b3d0d055a1ece089
 Licença CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
 Modificação: texturas convertidas de PNG para JPEG (`public/models/organs/heart.glb`).
+
+## Outros modelos realistas de órgãos
+
+Todos licenciados sob CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modificação: texturas convertidas de PNG para JPEG (máx. 2048 px).
+
+- Pulmões: "Realistic Human Lungs" por neshallads — https://sketchfab.com/3d-models/realistic-human-lungs-ce09f4099a68467880f46e61eb9a3531 (`public/models/organs/lungs.glb`)
+- Rins: "Human Kidney" por neshallads — https://sketchfab.com/3d-models/human-kidney-e1476ceb1e3b4412af5418eee9c5ed08 (`public/models/organs/kidneys.glb`)
+- Encéfalo: "Human brain, Cerebrum & Brainstem" por FrankJohansson (pranktoy) — https://sketchfab.com/3d-models/human-brain-cerebrum-brainstem-0aa0e33c5c854d1bab7bac9e1c7acaec (`public/models/organs/brain.glb`)
