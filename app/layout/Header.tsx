@@ -14,7 +14,7 @@ export function Header(props: {onAskTutor: () => void; onReset: () => void; onCr
     <header className="header">
       <button className="pill round mobile-only" onClick={props.onToggleLeft} aria-label="Abrir navegação"><Menu size={18} /></button>
       <div className="brand">
-        <div className="brand-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><circle cx="12" cy="5" r="2.5" /><path d="M12 8v7M8 11h8M10 22l2-7 2 7" /></svg></div>
+        <div className="brand-mark" aria-hidden="true">A</div>
         <div><h1>Atlas do Corpo Humano</h1><small>Biologia · Simulação</small></div>
       </div>
       <div className="header-actions">
