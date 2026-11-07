@@ -6,7 +6,8 @@ import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {createExplosionLayout} from './explosion-layout';
 import {decodeModelResponse} from './model-download';
 import {PointerTap} from './pointer-tap';
-import {SYSTEMS,type Atlas,type SceneState} from './anatomy';
+import {SYSTEMS,type Atlas,type SceneState,type SystemId} from './anatomy';
+import {surfaceOf} from './scene-materials';
 import {partOpacity} from './scene-state';
 import {labelsMoved,placeLabels,type ScreenLabel} from './scene-labels';
 /** A labelled structure: the label sits at the centre of its visible parts. */
@@ -57,7 +58,8 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError,na
   // Each system is drawn twice from the same geometry: a solid pass (opacity ≈ 1) and a ghost pass
   // (0 < opacity < 1, alpha-blended, no depth write) used by focus and layer fading.
   const materialFor=(system:string,ghost:boolean)=>{
-   const m=new T.MeshStandardMaterial({color:SYSTEMS.find(s=>s.id===system)?.color??'#aebbb8',metalness:.08,roughness:.53,side:T.DoubleSide,transparent:ghost,depthWrite:!ghost});
+   const f=surfaceOf(system as SystemId);
+   const m=new T.MeshPhysicalMaterial({color:SYSTEMS.find(s=>s.id===system)?.color??'#aebbb8',metalness:.02,roughness:f.roughness,clearcoat:f.clearcoat,clearcoatRoughness:f.clearcoatRoughness,sheen:f.sheen,sheenColor:new T.Color(f.sheenColor),sheenRoughness:.5,envMapIntensity:1.1,side:T.DoubleSide,transparent:ghost,depthWrite:!ghost});
    m.onBeforeCompile=shader=>{
     shader.uniforms.partState={value:partTexture};shader.uniforms.selectionState={value:selectionTexture};shader.uniforms.stateWidth={value:width};
     shader.vertexShader='attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partVisible; varying float partSelected; varying float partHighlight;\n'+shader.vertexShader;
@@ -65,7 +67,7 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError,na
     shader.fragmentShader='varying float partVisible; varying float partSelected; varying float partHighlight;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\n'+(ghost?'if (partVisible < 0.002 || partVisible >= 0.995) discard;':'if (partVisible < 0.995) discard;'));
     shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.55, 0.65, 1.0), partSelected * 0.18);\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.98, 0.72, 0.30), partHighlight * 0.6);'+(ghost?'\ndiffuseColor.a *= partVisible;':''));
-   };m.customProgramCacheKey=()=>`atlas-${ghost?'ghost':'solid'}`;materials.push(m);return m;
+   };m.customProgramCacheKey=()=>`atlas-${ghost?'ghost':'solid'}-${system}`;materials.push(m);return m;
   };
   const mats=new Map(SYSTEMS.map(s=>[s.id,materialFor(s.id,false)])),ghostMats=new Map(SYSTEMS.map(s=>[s.id,materialFor(s.id,true)]));
   let loaded=0;

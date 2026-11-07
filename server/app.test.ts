@@ -9,6 +9,13 @@ beforeAll(() => {
   fs.mkdirSync(path.join(distDir, 'models'));
   fs.writeFileSync(path.join(distDir, 'index.html'), '<!doctype html><title>Atlas</title>');
   fs.writeFileSync(path.join(distDir, 'models', 'body-0.bin.gz'), Buffer.from([0x1f, 0x8b, 1, 2, 3]));
+  fs.writeFileSync(path.join(distDir, 'models', 'heart.glb'), Buffer.from('glTF'));
+});
+
+test('serves detailed organ models as glTF binary', async () => {
+  const res = await createApp({distDir}).request('/models/heart.glb?v=1');
+  expect(res.status).toBe(200);
+  expect(res.headers.get('content-type')).toBe('model/gltf-binary');
 });
 afterAll(() => fs.rmSync(distDir, {recursive: true, force: true}));
 

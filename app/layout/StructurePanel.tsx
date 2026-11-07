@@ -1,4 +1,4 @@
-import {Focus, MessageCircle, ScanSearch, X} from 'lucide-react';
+import {Box, Focus, MessageCircle, ScanSearch, X} from 'lucide-react';
 import {SYSTEMS, explanation, type Atlas, type Concept} from '../anatomy';
 import {REGIONS, regionOf} from '../catalog';
 import type {NameIndex} from '../names';
@@ -14,6 +14,8 @@ export function StructurePanel(props: {
   onIsolate: () => void;
   onAskTutor: (conceptId: string) => void;
   onClose: () => void;
+  /** Present when a detailed, textured model exists for this structure. */
+  onDetailed?: () => void;
 }) {
   const {atlas, names, concept} = props;
   const first = atlas.parts.find(p => p.id === concept.elements[0]);
@@ -38,6 +40,7 @@ export function StructurePanel(props: {
         {!isGroup && <><dt>ID FMA</dt><dd className="mono">{concept.id}</dd></>}
         <dt>Nome em inglês</dt><dd>{concept.name}</dd>
       </dl>
+      {props.onDetailed && <button className="foot-btn detailed" onClick={props.onDetailed}><Box size={16} /> Ver modelo realista</button>}
       <div className="actions">
         <button className="seg" aria-pressed={props.focus} onClick={props.onFocus}><Focus size={15} /> Focar</button>
         <button className="seg" aria-pressed={props.isolate} onClick={props.onIsolate}><ScanSearch size={15} /> {props.isolate ? 'Mostrar ao redor' : 'Isolar'}</button>

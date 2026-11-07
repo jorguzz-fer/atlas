@@ -27,3 +27,10 @@ Earlier repository revisions included female reference anatomy: Kristen Browne a
 Adaptations: translated native meter/Y-up coordinates onto the stage, coincident vertices welded and source normals averaged, geometry simplified with a 0.2% per-structure relative error bound, and normals quantized. Colors and display systems are curated for this interface. All 888 source meshes are represented, with 1,073 source nodes available as selectable individual or compound concepts.
 
 This is a reference assembly with whole-body surface and selected organs, including female reproductive anatomy. Its skeleton and muscle coverage is partial. It is not a complete model of every human structure or a single-person scan. Eight placenta/umbilical structures are classified under Pregnancy reference and hidden by default.
+
+## Modelo realista do coração
+
+"Realistic Human Heart" por neshallads (https://sketchfab.com/neshallads), fonte:
+https://sketchfab.com/3d-models/realistic-human-heart-3f8072336ce94d18b3d0d055a1ece089
+Licença CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+Modificação: texturas convertidas de PNG para JPEG (`public/models/organs/heart.glb`).
