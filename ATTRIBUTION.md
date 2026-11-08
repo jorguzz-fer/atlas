@@ -46,3 +46,17 @@ Todos licenciados sob CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); 
 - Pâncreas e duodeno: "Human Pancreas Cross section" por arloopa — https://sketchfab.com/3d-models/human-pancreas-cross-section-f7b30e11b5df445fbdfe0e262e777c85 (`public/models/organs/pancreas.glb`)
 - Intestinos: "Small and large intestine" por antonia.sundberg — https://sketchfab.com/3d-models/small-and-large-intestine-8a1ca8e3ca224cdeb9264674416bde38 (`public/models/organs/intestines.glb`; malha simplificada para 50% dos triângulos)
 - Olho e músculos: "Muscles of the Orbit (Eye)" por thunderpig — https://sketchfab.com/3d-models/muscles-of-the-orbit-eye-2183957b3c3d493da716eb471ab6b517 (`public/models/organs/eye.glb`; malha simplificada para 12% dos triângulos)
+
+## Histologia (modelos incorporados do Sketchfab)
+
+Estes modelos não são baixados nem redistribuídos: são exibidos dentro do visualizador oficial do Sketchfab (embed + Viewer API) e continuam hospedados lá. Os marcadores numerados e os nomes em português são do Atlas; as anotações originais dos autores ficam ocultas.
+
+- Bactéria: "Bacterial cell structure" por Ebers — https://sketchfab.com/3d-models/bacterial-cell-structure-42439edc90cd4d87b8ae322a4dcee8de (licença Standard do Sketchfab)
+- Célula animal: "Eukaryotic cell cross-section" por Ebers — https://sketchfab.com/3d-models/eukaryotic-cell-cross-section-74f714127a8c4211bb1a2cac7195fb1a (Standard)
+- Célula vegetal: "Eukaryotic Plant Cell" por jlf_illustration — https://sketchfab.com/3d-models/eukaryotic-plant-cell-f258c65762e5435c9d58c1aa136b557a (Standard)
+- Neurônio: "Nerve cell (neuron and oligo-dendrocyte)" por Ebers — https://sketchfab.com/3d-models/nerve-cell-neuron-and-oligo-dendrocyte-1552b08138764c4897ac262cc5721792 (Editorial)
+- Micróglia: "Nerve glial cell (microglia)" por Ebers — https://sketchfab.com/3d-models/nerve-glial-cell-microglia-aeb54772e3f447858efc909c80035de4 (Editorial)
+- Osteócito: "Osteocyte / Bone Cell" por tomparsons — https://sketchfab.com/3d-models/osteocyte-bone-cell-904d5a510b024d3cba9b9845839b4206 (Standard)
+- Célula tumoral: "Cancer cell" por bblakesley — https://sketchfab.com/3d-models/cancer-cell-befebc741974461b94cbcb6b87877ea4 (Standard)
+
+As miniaturas da faixa "Histologia" são as imagens de capa servidas pelo próprio Sketchfab.

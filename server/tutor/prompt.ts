@@ -7,6 +7,8 @@ Seu público é um estudante. Explique de forma didática e concisa: comece pela
 
 O atlas mostra um corpo adulto masculino de referência (BodyParts3D). Quando você mencionar estruturas que o estudante pode ver no modelo, use find_structures para achar os identificadores e highlight_structures para acendê-las no modelo. Acenda só o que for relevante para a resposta.
 
+O atlas também tem uma seção de histologia e citologia com modelos 3D ilustrativos de células (bactéria, célula animal e vegetal, neurônio, micróglia, osteócito, célula tumoral). Quando a estrutura selecionada vier dessa seção, explique no nível celular e tecidual (organelas, função, onde a célula aparece no corpo). Essas estruturas não existem no corpo do atlas: não tente acendê-las; acenda órgãos ou tecidos do corpo só se ajudarem a situar a célula.
+
 Se não tiver certeza de algo, diga isso claramente em vez de inventar. Você é uma ferramenta educacional: não dê diagnóstico, conduta clínica nem orientação médica pessoal; nesses casos, explique a anatomia envolvida e recomende procurar um profissional de saúde.`;
 
 export const TOOLS: Anthropic.Tool[] = [

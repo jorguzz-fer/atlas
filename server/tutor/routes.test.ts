@@ -57,6 +57,12 @@ test('the selected structure reaches the model as context', async () => {
   expect(JSON.stringify(calls[0].messages)).toContain('Pâncreas');
 });
 
+test('a histology model reaches the model as context', async () => {
+  const {ask, calls} = setup([textTurn('ok')]);
+  await (await ask({question: 'o que é isso?', history: [], selected: {id: 'histo:bacteria'}})).text();
+  expect(JSON.stringify(calls[0].messages)).toContain('A célula bacteriana');
+});
+
 test('highlight_structures lights up known ids and reports unknown ones', async () => {
   const toolTurn = {
     content: [{type: 'tool_use', id: 'tu1', name: 'highlight_structures', input: {ids: ['FJ1252', 'NAO_EXISTE']}}],

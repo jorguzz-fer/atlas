@@ -20,6 +20,8 @@ import {QuizCard, TourCard, TourPicker} from './learn/LearnOverlay';
 import {TutorDrawer} from './tutor/TutorDrawer';
 import {OrganViewer} from './organs/OrganViewer';
 import {ORGAN_MODELS, organModelFor} from './organs/organ-models';
+import {histologyItemFor, tutorId} from './histology/histology';
+import {SketchfabViewer} from './histology/SketchfabViewer';
 
 const initial: SceneState = {
   explode: 0, visible: DEFAULT_VISIBLE, selected: [], isolate: false, view: 'perspective', rotate: false, reset: 0,
@@ -43,6 +45,9 @@ export default function Home() {
   const [credits, setCredits] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
   const [organView, setOrganView] = useState<string | null>(null);
+  const [histoView, setHistoView] = useState<string | null>(null);
+  /** Tutor context outside the body atlas (a histology model); wins over the selected structure. */
+  const [tutorTopic, setTutorTopic] = useState<{id: string; name: string} | null>(null);
   const [tours, setTours] = useState<Tour[]>([]);
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [tourPicker, setTourPicker] = useState(false);
@@ -89,6 +94,7 @@ export default function Home() {
   const choose = useCallback((c: Concept, opts: {isolate?: boolean; focus?: boolean} = {}) => {
     setChosen(c);
     setActiveOrgan(null);
+    setTutorTopic(null);
     // Focus re-frames the camera on the selection (reset+1 refits to what stays opaque).
     setState(s => ({...s, selected: c.elements, isolate: !!opts.isolate, focus: !!opts.focus, rotate: false, highlight: [], reset: opts.focus ? s.reset + 1 : s.reset}));
     setLeftOpen(false);
@@ -208,6 +214,8 @@ export default function Home() {
       onRegion={setRegion}
       onChoose={c => choose(c)}
       onOrgan={chooseOrgan}
+      activeHistology={histoView}
+      onHistology={key => { setOrganView(null); setHistoView(key); setLeftOpen(false); }}
       onQuickView={(visible: SystemId[]) => setState(s => ({...s, visible, selected: [], isolate: false, focus: false, highlight: []}))}
       onToggleSystem={id => setState(s => ({...s, visible: s.visible.includes(id) ? s.visible.filter(x => x !== id) : [...s.visible, id]}))}
       onLayer={(layer, value) => setState(s => ({...s, layers: {...s.layers, [layer]: value}}))}
@@ -255,6 +263,13 @@ export default function Home() {
 
   const detailedModel = organModelFor(activeOrgan) ?? ORGAN_MODELS.find(m => !!chosen && m.bodyConcepts.includes(chosen.name));
   const openModel = organModelFor(organView);
+  const openHisto = histologyItemFor(histoView);
+  const askHistology = (h: {id: string; name: string} | null) => {
+    if (!openHisto) return;
+    const marker = h && openHisto.hotspots.find(x => x.id === h.id);
+    setTutorTopic({id: tutorId(openHisto, marker ?? undefined), name: marker ? `${marker.name} (${openHisto.label})` : openHisto.title});
+    setTutorOpen(true);
+  };
 
   const right = chosen && atlas ? (
     <StructurePanel
@@ -266,7 +281,7 @@ export default function Home() {
       onFocus={() => setState(s => ({...s, focus: !s.focus, isolate: false}))}
       onIsolate={() => setState(s => ({...s, isolate: !s.isolate, focus: false, explode: 0}))}
       onAskTutor={() => { setTutorOpen(true); setLeftOpen(false); }}
-      onDetailed={detailedModel ? () => setOrganView(detailedModel.key) : undefined}
+      onDetailed={detailedModel ? () => { setHistoView(null); setOrganView(detailedModel.key); } : undefined}
       onClose={() => { setChosen(null); setActiveOrgan(null); setState(s => ({...s, selected: [], isolate: false, focus: false})); }}
     />
   ) : (
@@ -281,7 +296,7 @@ export default function Home() {
           <TutorDrawer
             open={tutorOpen}
             onClose={() => { setTutorOpen(false); setState(s => ({...s, highlight: []})); }}
-            selected={chosen ? {id: chosen.id.startsWith('group-') ? chosen.elements[0] : chosen.id, name: nameOfConcept(chosen)} : null}
+            selected={tutorTopic ?? (chosen ? {id: chosen.id.startsWith('group-') ? chosen.elements[0] : chosen.id, name: nameOfConcept(chosen)} : null)}
             onHighlight={ids => setState(s => ({...s, highlight: ids, isolate: false, explode: 0}))}
           />
         }
@@ -298,6 +313,9 @@ export default function Home() {
           }}
         />
       )}
+      {openHisto && (openHisto.kind === 'sketchfab'
+        ? <SketchfabViewer key={openHisto.key} item={openHisto} onClose={() => setHistoView(null)} onAskTutor={askHistology} />
+        : <OrganViewer key={openHisto.key} model={openHisto} backLabel="Voltar ao atlas" onClose={() => setHistoView(null)} onAskTutor={askHistology} />)}
       <CreditsDialog open={credits} onClose={() => setCredits(false)} />
     </>
   );

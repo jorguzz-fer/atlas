@@ -6,6 +6,7 @@ import type {NameIndex} from '../names';
 import {OrganIcon} from './OrganIcon';
 import {Carousel} from './Carousel';
 import {SearchBox} from './SearchBox';
+import {HISTOLOGY} from '../histology/histology';
 
 export type BrowseTab = 'regions' | 'systems' | 'layers';
 
@@ -23,6 +24,8 @@ export function LeftSidebar(props: {
   onRegion: (r: RegionId) => void;
   onChoose: (c: Concept) => void;
   onOrgan: (key: string) => void;
+  activeHistology: string | null;
+  onHistology: (key: string) => void;
   onQuickView: (visible: SystemId[]) => void;
   onToggleSystem: (id: SystemId) => void;
   onLayer: (layer: keyof SceneState['layers'], value: number) => void;
@@ -62,6 +65,18 @@ export function LeftSidebar(props: {
               <button key={o.key} className="organ-card" aria-pressed={props.activeOrgan === o.key} onClick={() => props.onOrgan(o.key)}>
                 <OrganIcon organ={o.key} size={56} />
                 <span>{o.label}</span>
+              </button>
+            ))}
+          </Carousel>
+        </section>
+
+        <section>
+          <div className="section-title"><span>Histologia</span><span className="count">{HISTOLOGY.length}</span></div>
+          <Carousel label="Histologia">
+            {HISTOLOGY.map(h => (
+              <button key={h.key} className="organ-card" aria-pressed={props.activeHistology === h.key} onClick={() => props.onHistology(h.key)}>
+                <img className="organ-icon histo-thumb" src={h.thumb} width={56} height={56} alt="" aria-hidden="true" draggable={false} loading="lazy" decoding="async" referrerPolicy="no-referrer" />
+                <span>{h.label}</span>
               </button>
             ))}
           </Carousel>
