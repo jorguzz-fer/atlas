@@ -1,12 +1,10 @@
 import {useMemo, type RefObject} from 'react';
 import {Bone, Dumbbell, Eye, EyeOff, GraduationCap, Info, Layers, PersonStanding, Sparkles} from 'lucide-react';
 import {SYSTEMS, type Atlas, type Concept, type SceneState, type SystemId} from '../anatomy';
-import {LAYERS, ORGANS_3D, QUICK_VIEWS, REGIONS, regionOf, type QuickViewId, type RegionId} from '../catalog';
+import {LAYERS, QUICK_VIEWS, REGIONS, regionOf, type QuickViewId, type RegionId} from '../catalog';
 import type {NameIndex} from '../names';
-import {OrganIcon} from './OrganIcon';
-import {Carousel} from './Carousel';
+import {Gallery} from './Gallery';
 import {SearchBox} from './SearchBox';
-import {HISTOLOGY} from '../histology/histology';
 
 export type BrowseTab = 'regions' | 'systems' | 'layers';
 
@@ -58,29 +56,7 @@ export function LeftSidebar(props: {
       <div className="left-scroll">
         <SearchBox ref={props.searchRef} atlas={atlas} names={names} onChoose={props.onChoose} />
 
-        <section>
-          <div className="section-title"><span>Órgãos em 3D</span><span className="count">{ORGANS_3D.length}</span></div>
-          <Carousel label="Órgãos em 3D">
-            {ORGANS_3D.map(o => (
-              <button key={o.key} className="organ-card" aria-pressed={props.activeOrgan === o.key} onClick={() => props.onOrgan(o.key)}>
-                <OrganIcon organ={o.key} size={56} />
-                <span>{o.label}</span>
-              </button>
-            ))}
-          </Carousel>
-        </section>
-
-        <section>
-          <div className="section-title"><span>Histologia</span><span className="count">{HISTOLOGY.length}</span></div>
-          <Carousel label="Histologia">
-            {HISTOLOGY.map(h => (
-              <button key={h.key} className="organ-card" aria-pressed={props.activeHistology === h.key} onClick={() => props.onHistology(h.key)}>
-                <img className="organ-icon histo-thumb" src={h.thumb} width={56} height={56} alt="" aria-hidden="true" draggable={false} loading="lazy" decoding="async" referrerPolicy="no-referrer" />
-                <span>{h.label}</span>
-              </button>
-            ))}
-          </Carousel>
-        </section>
+        <Gallery variant="sidebar" activeOrgan={props.activeOrgan} onOrgan={props.onOrgan} activeHistology={props.activeHistology} onHistology={props.onHistology} />
 
         <div className="tabs" role="tablist" aria-label="Navegar por">
           {([['regions', 'Regiões'], ['systems', 'Sistemas'], ['layers', 'Camadas']] as const).map(([id, label]) => (

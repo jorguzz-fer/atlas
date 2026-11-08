@@ -1,7 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
+import {Gallery, type GalleryProps} from './Gallery';
 import {Info, Menu, MessageCircle, MoreHorizontal, PanelRight, RotateCcw, X} from 'lucide-react';
 
-export function Header(props: {onAskTutor: () => void; onReset: () => void; onCredits: () => void; onToggleLeft: () => void; onToggleRight: () => void}) {
+export function Header(props: GalleryProps & {onAskTutor: () => void; onReset: () => void; onCredits: () => void; onToggleLeft: () => void; onToggleRight: () => void}) {
   const [menu, setMenu] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -17,6 +18,7 @@ export function Header(props: {onAskTutor: () => void; onReset: () => void; onCr
         <div className="brand-mark" aria-hidden="true">A</div>
         <div><h1>Atlas do Corpo Humano</h1><small>Biologia · Simulação</small></div>
       </div>
+      <Gallery variant="header" activeOrgan={props.activeOrgan} onOrgan={props.onOrgan} activeHistology={props.activeHistology} onHistology={props.onHistology} />
       <div className="header-actions">
         <button className="pill primary" onClick={props.onAskTutor}><MessageCircle size={16} /><span className="hide-sm">Perguntar ao tutor</span></button>
         <div className="menu" ref={ref}>

@@ -126,6 +126,9 @@ export default function Home() {
   const chooseOrgan = (key: string) => {
     const c = organConcept(key);
     if (!c) return;
+    // The header strip stays clickable over the viewers, so an organ closes them first.
+    setHistoView(null);
+    setOrganView(null);
     choose(c, {isolate: true});
     setActiveOrgan(key);
   };
@@ -191,6 +194,8 @@ export default function Home() {
     setRegion(null);
   };
 
+  const openHistology = (key: string) => { setOrganView(null); setHistoView(key); setLeftOpen(false); };
+
   const header = (
     <Header
       onAskTutor={() => { setTutorOpen(o => !o); setLeftOpen(false); }}
@@ -198,6 +203,10 @@ export default function Home() {
       onCredits={() => setCredits(true)}
       onToggleLeft={() => { setLeftOpen(o => !o); setRightOpen(false); }}
       onToggleRight={() => { setRightOpen(o => !o); setLeftOpen(false); }}
+      activeOrgan={activeOrgan}
+      onOrgan={chooseOrgan}
+      activeHistology={histoView}
+      onHistology={openHistology}
     />
   );
 
@@ -215,7 +224,7 @@ export default function Home() {
       onChoose={c => choose(c)}
       onOrgan={chooseOrgan}
       activeHistology={histoView}
-      onHistology={key => { setOrganView(null); setHistoView(key); setLeftOpen(false); }}
+      onHistology={openHistology}
       onQuickView={(visible: SystemId[]) => setState(s => ({...s, visible, selected: [], isolate: false, focus: false, highlight: []}))}
       onToggleSystem={id => setState(s => ({...s, visible: s.visible.includes(id) ? s.visible.filter(x => x !== id) : [...s.visible, id]}))}
       onLayer={(layer, value) => setState(s => ({...s, layers: {...s.layers, [layer]: value}}))}
