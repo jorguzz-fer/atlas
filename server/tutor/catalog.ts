@@ -4,6 +4,7 @@ import type {Atlas} from '../../app/anatomy';
 import {SYSTEMS} from '../../app/anatomy';
 import {REGIONS, correctAtlas, regionOf} from '../../app/catalog';
 import {createNameIndex, search, type NameIndex} from '../../app/names';
+import {describeHistology} from '../../app/histology/histology';
 
 export type StructureInfo = {id: string; pt: string; en: string; la?: string; sistema?: string; regiao?: string; pecas: number};
 
@@ -22,6 +23,8 @@ export function createCatalog(atlas: Atlas, names: NameIndex): Catalog {
       return search(names, atlas, query, limit).map(c => ({id: c.id, pt: names.display(c.id, c.name).pt, en: c.name}));
     },
     describe(id) {
+      const histology = describeHistology(id);
+      if (histology) return histology;
       const concept = concepts.get(id);
       const part = parts.get(id);
       const ref = concept ?? (part && concepts.get(part.conceptId));

@@ -16,11 +16,18 @@ const editorEnabled = () => typeof location !== 'undefined' && new URLSearchPara
  * Detailed, textured model of one organ with numbered markers, as in the lessons:
  * a list on the left, the model on the right; "Modo pergunta" hides the names until clicked.
  */
+/** What the viewer needs: an organ, or a downloaded histology model. */
+export type DetailModel = Pick<OrganModel, 'eyebrow' | 'title' | 'url' | 'fit' | 'rotation' | 'hotspots'> & {
+  credit: OrganModel['credit'] & {license?: {label: string; url: string}};
+};
+
 export function OrganViewer(props: {
-  model: OrganModel;
+  model: DetailModel;
   onClose: () => void;
   onAskTutor: (h: Hotspot) => void;
-  onShowInBody: (h: Hotspot | null) => void;
+  /** Omitted outside the body (histology): no "ver no corpo" button. */
+  onShowInBody?: (h: Hotspot | null) => void;
+  backLabel?: string;
 }) {
   const {model} = props;
   const stage = useRef<HTMLDivElement>(null);
@@ -206,7 +213,7 @@ export function OrganViewer(props: {
   return (
     <section className="organ-view" aria-label={model.title}>
       <div className="organ-copy">
-        <button className="organ-back" onClick={props.onClose}><ArrowLeft size={15} /> Voltar ao corpo</button>
+        <button className="organ-back" onClick={props.onClose}><ArrowLeft size={15} /> {props.backLabel ?? 'Voltar ao corpo'}</button>
         <div className="organ-eyebrow">{model.eyebrow}</div>
         <h2 className="organ-title">{model.title}</h2>
         <div className="organ-chips" role="group" aria-label="Modo das etiquetas">
@@ -232,9 +239,11 @@ export function OrganViewer(props: {
           <button className="foot-btn" disabled={!current || nameHidden(current)} onClick={() => current && props.onAskTutor(current)}>
             <MessageCircle size={16} /> {current && !nameHidden(current) ? `Perguntar sobre ${current.name.toLowerCase()}` : 'Selecione uma estrutura para perguntar ao tutor'}
           </button>
-          <button className="foot-btn" onClick={() => props.onShowInBody(current && !nameHidden(current) ? current : null)}>
-            <PersonStanding size={16} /> {current && !nameHidden(current) ? 'Ver no corpo inteiro' : 'Ver o órgão no corpo inteiro'}
-          </button>
+          {props.onShowInBody && (
+            <button className="foot-btn" onClick={() => props.onShowInBody?.(current && !nameHidden(current) ? current : null)}>
+              <PersonStanding size={16} /> {current && !nameHidden(current) ? 'Ver no corpo inteiro' : 'Ver o órgão no corpo inteiro'}
+            </button>
+          )}
         </div>
         {editor && (
           <div className="organ-editor">
@@ -262,7 +271,7 @@ export function OrganViewer(props: {
           </div>
         )}
         <p className="organ-credit">
-          Modelo 3D: “<a href={model.credit.source} target="_blank" rel="noreferrer">{model.credit.title}</a>”, por <a href={model.credit.authorUrl} target="_blank" rel="noreferrer">{model.credit.author}</a> (Sketchfab), licença <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>.
+          Modelo 3D: “<a href={model.credit.source} target="_blank" rel="noreferrer">{model.credit.title}</a>”, por <a href={model.credit.authorUrl} target="_blank" rel="noreferrer">{model.credit.author}</a> (Sketchfab), licença <a href={model.credit.license?.url ?? 'https://creativecommons.org/licenses/by/4.0/'} target="_blank" rel="noreferrer">{model.credit.license?.label ?? 'CC BY 4.0'}</a>.
         </p>
       </div>
       <div className="organ-stage" ref={stage}>

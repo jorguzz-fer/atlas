@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'react';
 import {X} from 'lucide-react';
 import {ORGAN_MODELS} from '../organs/organ-models';
+import {HISTOLOGY} from '../histology/histology';
 
 export function CreditsDialog(props: {open: boolean; onClose: () => void}) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -24,6 +25,13 @@ export function CreditsDialog(props: {open: boolean; onClose: () => void}) {
         ))}
       </ul>
       <p>Licenciados sob <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>. Texturas convertidas para JPEG para carregar mais rápido.</p>
+      <h3>Histologia</h3>
+      <ul className="credit-list">
+        {HISTOLOGY.map(h => (
+          <li key={h.key}>“<a href={h.credit.source} target="_blank" rel="noreferrer">{h.credit.title}</a>”, por <a href={h.credit.authorUrl} target="_blank" rel="noreferrer">{h.credit.author}</a>, licença <a href={h.credit.license.url} target="_blank" rel="noreferrer">{h.credit.license.label}</a>{h.kind === 'sketchfab' ? ' (incorporado do Sketchfab)' : ''}</li>
+        ))}
+      </ul>
+      <p>Os modelos incorporados são exibidos pelo visualizador do Sketchfab e continuam hospedados lá; precisam de internet.</p>
       <h3>Nomes em português</h3>
       <p>Rótulos em português e latim do <a href="https://www.wikidata.org" target="_blank" rel="noreferrer">Wikidata</a> (CC0), ligados pelo identificador FMA. Os nomes que faltavam foram traduzidos por IA e aparecem marcados como “tradução automática”.</p>
       <h3>Código</h3>
